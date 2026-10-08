@@ -1,12 +1,14 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 
 const navigation = [
-  { label: "Inicio", href: "#inicio" },
-  { label: "Colecciones", href: "#colecciones" },
-  { label: "Nuestra esencia", href: "#nuestra-esencia" },
+  { label: "Inicio", href: "/#inicio" },
+  { label: "Colecciones", href: "/#colecciones" },
+  { label: "Tienda", href: "/tienda" },
+  { label: "Nuestra esencia", href: "/#nuestra-esencia" },
 ];
 
 export function SiteHeader() {
@@ -15,8 +17,8 @@ export function SiteHeader() {
   return (
     <header className="relative z-50 border-b border-brand-black/10 bg-brand-white">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-5 md:px-10">
-        <a
-          href="#inicio"
+        <Link
+          href="/"
           className="flex shrink-0 items-center gap-3"
           aria-label="Chusquisimas, ir al inicio"
         >
@@ -32,29 +34,37 @@ export function SiteHeader() {
           <span className="text-lg font-bold tracking-tight sm:text-xl">
             Chusquisimas
           </span>
-        </a>
+        </Link>
 
         <nav
           aria-label="Navegacion principal"
           className="hidden items-center gap-7 lg:flex"
         >
           {navigation.map((item) => (
-            <a
+            <Link
               key={item.href}
               href={item.href}
               className="text-sm font-bold transition-colors hover:text-brand-orange"
             >
               {item.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
-        <a
-          href="#colecciones"
+        <Link
+          href="/tienda"
           className="hidden rounded-full bg-brand-orange px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-brand-black sm:inline-flex"
         >
           Explorar
-        </a>
+        </Link>
+
+        <div className="flex items-center gap-2 lg:hidden">
+          <Link
+            href="/tienda"
+            className="rounded-full bg-brand-orange px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-black"
+          >
+            Tienda
+          </Link>
 
         <button
           type="button"
@@ -68,6 +78,7 @@ export function SiteHeader() {
             {menuOpen ? "×" : "☰"}
           </span>
         </button>
+        </div>
       </div>
 
       {menuOpen && (
@@ -78,14 +89,14 @@ export function SiteHeader() {
         >
           <div className="mx-auto flex max-w-7xl flex-col gap-2">
             {navigation.map((item) => (
-              <a
+              <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setMenuOpen(false)}
                 className="rounded-xl px-4 py-3 text-base font-bold hover:bg-brand-cream"
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </div>
         </nav>
