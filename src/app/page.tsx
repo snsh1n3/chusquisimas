@@ -1,52 +1,102 @@
-import Image from "next/image";
+import { SiteHeader } from "@/components/layout/site-header";
+import { Hero } from "@/components/home/hero";
+
+const categories = [
+  {
+    number: "01",
+    title: "Velas aromáticas",
+    description: "Aromas que hacen que cualquier rincón se sienta especial.",
+    accent: "bg-brand-orange",
+    text: "text-white",
+  },
+  {
+    number: "02",
+    title: "Wax melts",
+    description: "Pequeños detalles llenos de aroma y personalidad.",
+    accent: "bg-brand-yellow",
+    text: "text-brand-black",
+  },
+  {
+    number: "03",
+    title: "Detalles personalizados",
+    description: "Ideas únicas para celebrar momentos que importan.",
+    accent: "bg-brand-cream-deep",
+    text: "text-brand-black",
+  },
+];
 
 export default function Home() {
-	return (
-		<div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-			<main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-				<Image className="dark:invert" src="/next.svg" alt="Next.js logo" width={180} height={38} priority />
-				<ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-					<li className="mb-2 tracking-[-.01em]">
-						Get started by editing{" "}
-						<code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-							src/app/page.tsx
-						</code>
-						.
-					</li>
-					<li className="tracking-[-.01em]">Save and see your changes instantly.</li>
-				</ol>
+  return (
+    <main id="inicio" className="min-h-screen bg-brand-cream text-brand-black">
+      <SiteHeader />
+      <Hero />
 
-				<div className="flex gap-4 items-center flex-col sm:flex-row">
-					<a
-						className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-						href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Read our docs
-					</a>
-				</div>
-			</main>
-			<footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-				<a
-					className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-					href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<Image aria-hidden src="/file.svg" alt="File icon" width={16} height={16} />
-					Learn
-				</a>
-				<a
-					className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-					href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<Image aria-hidden src="/globe.svg" alt="Globe icon" width={16} height={16} />
-					Go to nextjs.org →
-				</a>
-			</footer>
-		</div>
-	);
+      <section
+        id="colecciones"
+        className="bg-brand-white px-5 py-12 sm:py-16 md:px-10"
+      >
+        <div className="mx-auto max-w-7xl">
+          <p className="font-bold uppercase tracking-[0.2em] text-brand-orange">
+            Un universo de aromas
+          </p>
+          <h2 className="mt-4 text-4xl font-bold tracking-tight md:text-5xl">
+            Algo chusquísimo para cada ocasión.
+          </h2>
+
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            {categories.map((category) => (
+              <article
+                key={category.number}
+                className={`${category.accent} ${category.text} flex min-h-52 flex-col justify-between rounded-[1.5rem] p-6 shadow-sm sm:min-h-56 sm:p-7`}
+              >
+                <span className="text-sm font-bold">
+                  {category.number} / Colección
+                </span>
+
+                <div>
+                  <h3 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                    {category.title}
+                  </h3>
+                  <p className="mt-2 max-w-xs text-sm leading-relaxed sm:text-base">
+                    {category.description}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="nuestra-esencia"
+        className="px-5 py-12 sm:py-16 md:px-10"
+      >
+        <div className="mx-auto grid max-w-7xl items-center gap-8 md:grid-cols-2">
+          <div>
+            <p className="font-bold uppercase tracking-[0.2em] text-brand-orange">
+              Nuestra esencia
+            </p>
+            <h2 className="mt-4 text-4xl font-bold md:text-5xl">
+              Más que aromas: pequeños momentos felices.
+            </h2>
+          </div>
+
+          <p className="text-lg leading-relaxed">
+            Creemos en los detalles hechos con intención.
+            Creamos productos artesanales con recipientes
+            de cemento y ceras vegetales, para acompañar
+            momentos cotidianos y ocasiones especiales.
+          </p>
+        </div>
+      </section>
+
+      <footer className="bg-brand-black px-5 py-8 text-brand-white md:px-10">
+        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-3 text-sm md:flex-row">
+          <span className="font-bold">Chusquisimas</span>
+          <span>Crea ambiente, enciende tu chusquísima.</span>
+          <span>Vista preliminar V2 · No publicada</span>
+        </div>
+      </footer>
+    </main>
+  );
 }
