@@ -1,9 +1,14 @@
 import Link from "next/link";
+import { ProductCard } from "@/components/catalog/product-card";
 import { SiteHeader } from "@/components/layout/site-header";
 import type { Metadata } from "next";
 
 import { getCatalogCategories } from "@/data/catalog";
-import { getActiveProducts, getProductsByCategory } from "@/lib/catalog/queries";
+import {
+  getActiveProducts,
+  getProductsByCategory,
+  getProductVariants,
+} from "@/lib/catalog/queries";
 
 export const metadata: Metadata = {
   title: "Tienda | Chusquisimas",
@@ -100,10 +105,29 @@ export default async function StorePage({
               <h2 className="text-2xl font-bold">
                 {selectedCategory?.name ?? "Todos los productos"}
               </h2>
+
               <p className="mt-3 text-[#66584D]">
-                Encontramos {products.length} productos.
-                Pronto podrás explorarlos aquí.
+                {products.length === 1
+                  ? "Encontramos 1 producto."
+                  : `Encontramos ${products.length} productos.`}
               </p>
+
+              <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {products.map((product) => {
+                  const category = categories.find((item) =>
+                    product.categoryIds.includes(item.id)
+                  );
+
+                  return (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      variants={getProductVariants(product.id)}
+                      categoryName={category?.name}
+                    />
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
