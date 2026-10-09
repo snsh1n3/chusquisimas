@@ -48,7 +48,7 @@ export async function createDraftProduct(
   ).bind(auditId, actorId, productId, product.name);
   const initialVariant = db.prepare(
     "INSERT INTO store_variants (id,product_id,sku,label,status,price_cop,on_hand,reserved) VALUES (?,?,?, ?,'inactive',NULL,0,0)"
-  ).bind(`variant-${productId}`, productId, `CHV2-${productId.slice(0, 12)}`, "Presentación estándar");
+  ).bind(`variant-${productId}`, productId, `CHV2-${slugify(product.name)}`, "Presentación estándar");
   const category = product.productType === "candle" ? "cat-velas-aromaticas"
     : product.productType === "wax_melt" ? "cat-wax-melts"
     : product.productType === "kit" ? "cat-kits" : "cat-personalizados";
