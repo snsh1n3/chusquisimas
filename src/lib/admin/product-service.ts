@@ -128,3 +128,49 @@ export async function editProduct(
     throw new ProductConflictError("Producto desactualizado. Recarga e inténtalo otra vez.");
   }
 }
+
+/**
+ * Hard-delete only a safely archived product.
+ * All variants must have zero stock/reservations, and none can have stock
+ * movement history. Keep a tombstone audit record outside FK cascade.
+ * D1 batch is atomic: an unmet prerequisite aborts the batch.
+ */
+export async function deleteArchivedProduct(
+  db: ProductDatabase, id: string, expectedName: string, actorId: string, auditId: string,
+) {
+  if (!id || id.length > 120 || !expectedName || expectedName.length > 120) {
+    throw new ProductConflictError("Producto inválido");
+  }
+  const safe = `p.id=? AND p.name=? AND p.status='archived'
+    AND NOT EXISTS (SELECT 1 FROM store_variants v WHERE v.product_id=p.id
+      AND (v.on_hand<>0 OR v.reserved<>0))
+    AND NOT EXISTS (SELECT 1 FROM store_inventory_movements m
+      JOIN store_variants v ON v.id=m.variant_id WHERE v.product_id=p.id)`;
+  // Audit first, then dependent rows and the product. A failed guarded
+  // product deletion aborts the atomic batch on FK/constraint failure.
+  const audit = db.prepare(`INSERT INTO admin_audit_log
+    (id,actor_user_id,action,resource_type,resource_id,details_json)
+    SELECT ?,?,'product_delete','product',p.id,
+      json_object('name',p.name,'slug',p.slug,'status',p.status)
+    FROM store_products p WHERE ${safe}`)
+    .bind(auditId, actorId, id, expectedName);
+  const images = db.prepare(`DELETE FROM store_product_images WHERE product_id=?
+    AND EXISTS (SELECT 1 FROM store_products p WHERE ${safe})`)
+    .bind(id, id, expectedName);
+  const categories = db.prepare(`DELETE FROM store_product_categories WHERE product_id=?
+    AND EXISTS (SELECT 1 FROM store_products p WHERE ${safe})`)
+    .bind(id, id, expectedName);
+  const variants = db.prepare(`DELETE FROM store_variants WHERE product_id=?
+    AND EXISTS (SELECT 1 FROM store_products p WHERE ${safe})`)
+    .bind(id, id, expectedName);
+  const product = db.prepare(`DELETE FROM store_products WHERE id=? AND name=?
+    AND status='archived' AND EXISTS
+    (SELECT 1 FROM admin_audit_log WHERE id=? AND action='product_delete')
+    AND NOT EXISTS (SELECT 1 FROM store_variants WHERE product_id=store_products.id)`)
+    .bind(id, expectedName, auditId);
+  const results = await db.batch([audit, images, categories, variants, product]);
+  if (results.length !== 5 || results.some(r => !r.success) ||
+      results[0].meta.changes !== 1 || results[4].meta.changes !== 1) {
+    throw new ProductConflictError("No se puede eliminar: debe estar archivado, sin existencias, reservas ni movimientos.");
+  }
+}
