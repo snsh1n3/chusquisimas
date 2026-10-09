@@ -17,7 +17,7 @@ export async function getPublishedCatalog(): Promise<{
   products: CatalogProduct[]; variants: ProductVariant[];
 }> {
   const context = await getCloudflareContext({ async: true });
-  const db = context.env.DB;
+  const db = (context.env as typeof context.env & { DB: D1Database }).DB;
   if (!db) throw Error("Catálogo no disponible");
   // Fail closed: products with no priced active variant are not for sale.
   const [productsResult, variantsResult, categoriesResult] = await Promise.all([
