@@ -78,13 +78,15 @@ export default async function AdminHomePage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
+              {rows.map((row, index) => (
                 <tr key={`${row.product_id}:${row.variant_id ?? "none"}`}
                   className="border-t border-[#EDE3D7] align-top">
                   <td className="p-4">
                     <strong>{row.product_name}</strong>
-                    {canManageProducts ? <ProductVisibility id={row.product_id} status={row.product_status} canPublish={row.product_ready === 1} /> : <div className="text-xs">{row.product_status}</div>}
-                    {row.product_status !== "active" && row.product_ready !== 1 && <div className="text-xs text-[#66584D]">Requiere variante activa con precio para publicar</div>}
+                    {index === 0 || rows[index - 1]?.product_id !== row.product_id ? (
+                      canManageProducts ? <ProductVisibility id={row.product_id} status={row.product_status} canPublish={row.product_ready === 1} /> : <div className="text-xs">{row.product_status}</div>
+                    ) : null}
+                    {(index === 0 || rows[index - 1]?.product_id !== row.product_id) && row.product_status !== "active" && row.product_ready !== 1 && <div className="text-xs text-[#66584D]">Requiere variante activa con precio para publicar</div>}
                   </td>
                   <td className="p-4">
                     {row.variant_id ? (
