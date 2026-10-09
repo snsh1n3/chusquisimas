@@ -1,7 +1,7 @@
 # Matriz de cumplimiento y seguridad — Chusquisimas V2
 
 Actualizado: 2026-10-09 · Alcance: tienda pública, administración, WhatsApp y servicios Cloudflare.
-**Estado general: NO APROBADO PARA OPERACIÓN COMERCIAL.**
+**Situación declarada:** Chusquisimas opera actualmente como persona natural con RUT a nombre de una de sus responsables (la esposa del usuario), mientras se prepara la constitución de la empresa. La existencia del RUT no acredita por sí sola matrícula mercantil, habilitaciones, régimen fiscal ni cumplimiento de facturación.\n**Estado general: NO APROBADO PARA OPERACIÓN COMERCIAL DE V2.**
 Este documento es un control de proyecto, no un dictamen legal, certificación OWASP ni auditoría independiente.
 
 ## Estados
@@ -14,7 +14,7 @@ Este documento es un control de proyecto, no un dictamen legal, certificación O
 
 | ID | Ámbito | Requisito / resultado verificable | Evidencia necesaria para aprobar | Estado | Bloquea ventas |
 |---|---|---|---|---|---|
-| LEG-01 | Formalización | Identificar persona natural o jurídica responsable, validar RUT, matrícula mercantil cuando aplique, régimen tributario y facturación con profesional competente. | Identidad comercial validada, comprobantes y revisión contable, sin guardar datos sensibles en GitHub. | Pendiente | Sí |
+| LEG-01 | Formalización | Responsable actual identificado como persona natural con RUT (dato declarado, no verificado). Revisar actividad económica registrada en el RUT, matrícula mercantil y establecimiento cuando aplique, facturación e impuestos con asesor contable; preparar eventual transición a sociedad. | Comprobación privada del RUT y actividades económicas, evaluación de Cámara de Comercio, régimen fiscal, facturación y datos comerciales exigibles; sin subir NIT, documento personal ni copias del RUT a GitHub. | Pendiente | Sí |
 | LEG-02 | Identidad | Mostrar identificación del vendedor, medios de contacto y demás información exigible al proveedor. | Captura de páginas públicas y revisión jurídica. | Pendiente | Sí |
 | LEG-03 | Información producto | Características, dimensiones, materiales, instrucciones, advertencias pertinentes y descripción veraz de cada referencia. | Revisión de fichas reales. | Pendiente | Sí |
 | LEG-04 | Precio | Mostrar precio total en COP, tributos aplicables, costos adicionales y envío antes del consentimiento de compra. No mostrar cero por precio pendiente. | Casos de prueba y pantallas reales. | Pendiente | Sí |
@@ -39,7 +39,7 @@ Este documento es un control de proyecto, no un dictamen legal, certificación O
 | OPS-02 | Catálogo | Precios y fotos editables desde UI con autorización y versionamiento/auditoría; productos en draft por defecto. | Prueba end-to-end multiusuario. | Pendiente | Sí |
 | OPS-03 | No publicación | `main`, DNS y web vigente no se modifican hasta autorización explícita y aceptación de controles. | Revisión de diff/infra y aprobación. | Pendiente | Sí |
 
-## Decisiones de arquitectura
+## Estado jurídico declarado y pendiente de verificar\n- Operación actual: persona natural con RUT a nombre de una responsable del negocio; proyecto de constituir una sociedad posteriormente.\n- Pendiente: verificar si el RUT incluye las actividades correctas para fabricación/comercialización, si procede matrícula mercantil o registro de establecimiento, responsabilidades tributarias, facturación, y la información legal publicable sin exponer datos personales innecesarios.\n- La transición a sociedad requerirá revisar actualización de datos fiscales, facturación, políticas y titularidad de los canales.\n\n## Decisiones de arquitectura
 - Mantener `admin.chusquisimas.com` protegido con Cloudflare Access.
 - Mantener `chusquisimas.com` como tienda pública. Acciones críticas no deben depender solo del aislamiento de DNS.
 - D1 `chusquisimas-v2-db`, R2 privado `chusquisimas-v2-images`: están creados, pero ningún resultado de ejecución remota o migración se presume.
