@@ -34,21 +34,30 @@ export async function updateInventory(
   if (!actorUserId || !movementId) throw new Error("Se requiere autor y movimiento.");
   if (edit.onHand === input.expectedOnHand) return;
 
+  // Insert the movement conditionally before changing stock. A failed CAS
+  // inserts nothing, and the subsequent UPDATE can only use this movement.
+  // Both statements are executed in one D1 transaction via batch().
+  const audit = db.prepare(`
+    INSERT INTO store_inventory_movements
+      (id, variant_id, actor_user_id, old_on_hand, new_on_hand, reason)
+    SELECT ?, v.id, ?, v.on_hand, ?, ?
+    FROM store_variants v
+    WHERE v.id = ? AND v.on_hand = ? AND v.reserved <= ?
+  `).bind(movementId, actorUserId, edit.onHand, edit.reason,
+    edit.variantId, input.expectedOnHand, edit.onHand);
+
   const update = db.prepare(`
     UPDATE store_variants
     SET on_hand = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ? AND on_hand = ? AND reserved <= ?
-  `).bind(edit.onHand, edit.variantId, input.expectedOnHand, edit.onHand);
+      AND EXISTS (
+        SELECT 1 FROM store_inventory_movements
+        WHERE id = ? AND variant_id = store_variants.id
+      )
+  `).bind(edit.onHand, edit.variantId, input.expectedOnHand,
+    edit.onHand, movementId);
 
-  const audit = db.prepare(`
-    INSERT INTO store_inventory_movements
-      (id, variant_id, actor_user_id, old_on_hand, new_on_hand, reason)
-    SELECT ?, ?, ?, ?, ?, ?
-    WHERE changes() = 1
-  `).bind(movementId, edit.variantId, actorUserId,
-    input.expectedOnHand, edit.onHand, edit.reason);
-
-  const results = await db.batch([update, audit]);
+  const results = await db.batch([audit, update]);
   if (!results[0]?.success || results[0]?.meta.changes !== 1 ||
       !results[1]?.success || results[1]?.meta.changes !== 1) {
     throw new InventoryConflictError();
