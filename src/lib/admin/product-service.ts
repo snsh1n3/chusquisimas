@@ -65,13 +65,16 @@ export async function changeProductStatus(
   const readyClause = target === "active"
     ? " AND EXISTS (SELECT 1 FROM store_variants v WHERE v.product_id=store_products.id AND v.status='active' AND v.price_cop IS NOT NULL)"
     : "";
-  const update = db.prepare(
-    `UPDATE store_products SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND status=?${readyClause}`
-  ).bind(target, id, previous);
   const audit = db.prepare(
-    "INSERT INTO admin_audit_log (id,actor_user_id,action,resource_type,resource_id,details_json) SELECT ?,?,'product_status','product',id,json_object('before',?,'after',?) FROM store_products WHERE id=? AND status=?"
-  ).bind(auditId, actorId, previous, target, id, target);
-  const results = await db.batch([update, audit]);
+    `INSERT INTO admin_audit_log (id,actor_user_id,action,resource_type,resource_id,details_json)
+     SELECT ?,?,'product_status','product',id,json_object('before',?,'after',?)
+     FROM store_products WHERE id=? AND status=?${readyClause}`
+  ).bind(auditId, actorId, previous, target, id, previous);
+  const update = db.prepare(
+    `UPDATE store_products SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND status=?${readyClause}
+     AND EXISTS (SELECT 1 FROM admin_audit_log WHERE id=? AND resource_id=store_products.id)`
+  ).bind(target, id, previous, auditId);
+  const results = await db.batch([audit, update]);
   if (results.length !== 2 || results.some(x => !x.success || x.meta.changes !== 1)) {
     throw new ProductConflictError("Estado desactualizado o ninguna variante activa con precio");
   }
