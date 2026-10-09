@@ -99,3 +99,35 @@ export function ProductVisibility({
     </div>
   );
 }
+
+export function VariantVisibility({
+  id, status, hasPrice,
+}: { id: string; status: "active" | "inactive"; hasPrice: boolean }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
+  async function toggle() {
+    setBusy(true); setNotice("");
+    try {
+      const response = await fetch("/api/admin/variants", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ variantId: id, previous: status, target: status === "active" ? "inactive" : "active" }),
+      });
+      const data = await response.json() as { error?: string };
+      if (!response.ok) throw Error(data.error || "No se pudo actualizar");
+      router.refresh();
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : "Error inesperado");
+    } finally { setBusy(false); }
+  }
+  return (
+    <div className="mt-2">
+      <button type="button" disabled={busy || (status === "inactive" && !hasPrice)}
+        onClick={toggle} className="rounded border px-2 py-1 text-xs disabled:opacity-40">
+        {status === "active" ? "Desactivar variante" : "Activar variante"}
+      </button>
+      {!hasPrice && <p className="text-xs text-[#66584D]">Define un precio primero</p>}
+      {notice && <p role="status" className="text-xs">{notice}</p>}
+    </div>
+  );
+}
