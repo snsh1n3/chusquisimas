@@ -5,7 +5,7 @@ import { can } from "@/lib/admin/permissions";
 import { InventoryEditor } from "@/components/admin/inventory-editor";
 import { PriceEditor } from "@/components/admin/price-editor";
 import { AddVariant } from "@/components/admin/add-variant";
-import { CreateProductForm, ProductVisibility, VariantVisibility } from "@/components/admin/product-manager";
+import { CreateProductForm, ProductVisibility, VariantVisibility, EditProduct } from "@/components/admin/product-manager";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -17,6 +17,7 @@ interface AdminVariantRow {
   product_id: string;
   product_name: string;
   product_type: "candle" | "wax_melt" | "kit" | "custom";
+  product_description: string;
   product_status: "draft" | "active" | "archived";
   product_ready: number;
   variant_id: string | null;
@@ -41,7 +42,7 @@ export default async function AdminHomePage() {
     canEditPrices = can(principal, "catalog.write");
     canManageProducts = canEditPrices;
     const response = await database.prepare(`
-      SELECT p.id AS product_id, p.name AS product_name, p.product_type, p.status AS product_status,
+      SELECT p.id AS product_id, p.name AS product_name, p.description AS product_description, p.product_type, p.status AS product_status,
         EXISTS(SELECT 1 FROM store_variants av WHERE av.product_id=p.id AND av.status='active' AND av.price_cop IS NOT NULL) AS product_ready,
         v.id AS variant_id, v.sku, v.label AS variant_label, v.status AS variant_status,
         a.name AS aroma_name, v.on_hand, v.reserved, v.price_cop
@@ -87,6 +88,7 @@ export default async function AdminHomePage() {
                   className="border-t border-[#EDE3D7] align-top">
                   <td className="p-4">
                     <strong>{row.product_name}</strong>
+                    {(index === 0 || rows[index - 1]?.product_id !== row.product_id) && canManageProducts && <EditProduct id={row.product_id} initialName={row.product_name} initialDescription={row.product_description} initialType={row.product_type} status={row.product_status} />}
                     {index === 0 || rows[index - 1]?.product_id !== row.product_id ? (
                       canManageProducts ? <ProductVisibility id={row.product_id} status={row.product_status} canPublish={row.product_ready === 1} /> : <div className="text-xs">{row.product_status}</div>
                     ) : null}
