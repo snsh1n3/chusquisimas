@@ -45,3 +45,12 @@ except sqlite3.IntegrityError:
     pass
 
 print("SQLite schema, 19 draft products, 6 aromas, idempotence and constraints: PASS")
+
+# Candidate variants are not yet in remote D1. Check the optional seed locally.
+db.executescript((ROOT / "seeds/candle_variants.sql").read_text(encoding="utf-8"))
+assert db.execute("SELECT COUNT(*) FROM store_variants").fetchone()[0] == 90
+assert db.execute("SELECT COUNT(*) FROM store_variants WHERE price_cop IS NOT NULL OR on_hand <> 0 OR status <> 'inactive' OR preparation_days <> 14").fetchone()[0] == 0
+assert db.execute("PRAGMA foreign_key_check").fetchall() == []
+db.executescript((ROOT / "seeds/candle_variants.sql").read_text(encoding="utf-8"))
+assert db.execute("SELECT COUNT(*) FROM store_variants").fetchone()[0] == 90
+print("90 inactive candle-aroma variants, zero stock, nullable price, seed replay: PASS")
