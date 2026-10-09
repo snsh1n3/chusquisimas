@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuthenticatedAdmin } from "@/lib/admin/server-auth";
 import {
-  createDraftProduct, changeProductStatus, editProduct, validateStatus, ProductConflictError,
+  createDraftProduct, changeProductStatus, editProduct, deleteArchivedProduct, validateStatus, ProductConflictError,
   type ProductDatabase,
 } from "@/lib/admin/product-service";
 
@@ -48,6 +48,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ updated: true }, {
         headers: { "Cache-Control": "no-store" },
       });
+    }
+    if (v.action === "delete") {
+      if (typeof v.id !== "string" || typeof v.expectedName !== "string" ||
+          v.confirmation !== "ELIMINAR") {
+        return NextResponse.json({ error: "Confirmación inválida" }, { status: 400 });
+      }
+      await deleteArchivedProduct(db, v.id, v.expectedName, principal.id, crypto.randomUUID());
+      return NextResponse.json({ deleted: true }, { headers: { "Cache-Control": "no-store" } });
     }
     if (v.action === "visibility") {
       if (typeof v.id !== "string") throw Error("ID inválido");
