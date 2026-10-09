@@ -4,11 +4,9 @@ import { SiteHeader } from "@/components/layout/site-header";
 import type { Metadata } from "next";
 
 import { getCatalogCategories } from "@/data/catalog";
-import {
-  getActiveProducts,
-  getProductsByCategory,
-  getProductVariants,
-} from "@/lib/catalog/queries";
+import { getPublishedCatalog } from "@/lib/catalog/d1-published";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Tienda | Chusquisimas",
@@ -30,9 +28,10 @@ export default async function StorePage({
     (item) => item.slug === categoria
   );
 
+  const published = await getPublishedCatalog();
   const products = selectedCategory
-    ? getProductsByCategory(selectedCategory.id)
-    : getActiveProducts();
+    ? published.products.filter(p => p.categoryIds.includes(selectedCategory.id))
+    : published.products;
 
   return (
     <main className="min-h-screen bg-[#F7F1E9] text-[#231F20]">
@@ -122,7 +121,7 @@ export default async function StorePage({
                     <ProductCard
                       key={product.id}
                       product={product}
-                      variants={getProductVariants(product.id)}
+                      variants={published.variants.filter(v => v.productId === product.id)}
                       categoryName={category?.name}
                     />
                   );
