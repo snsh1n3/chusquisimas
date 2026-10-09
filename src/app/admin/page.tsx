@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAuthenticatedAdmin } from "@/lib/admin/server-auth";
 import { can } from "@/lib/admin/permissions";
@@ -30,7 +31,10 @@ interface AdminVariantRow {
   price_cop: number | null;
 }
 
-export default async function AdminHomePage() {
+export default async function AdminHomePage({ searchParams }: {
+  searchParams: Promise<{ archived?: string }>;
+}) {
+  const showArchived = (await searchParams).archived === "1";
   let rows: AdminVariantRow[] = [];
   let aromas: { id: string; name: string }[] = [];
   let canEditInventory = false;
@@ -51,7 +55,7 @@ export default async function AdminHomePage() {
       LEFT JOIN store_aromas a ON a.id = v.aroma_id
       ORDER BY p.name COLLATE NOCASE, v.sku
     `).bind().all<AdminVariantRow>();
-    rows = response.results;
+    rows = response.results.filter(row => showArchived ? row.product_status === "archived" : row.product_status !== "archived");
     aromas = (await database.prepare("SELECT id,name FROM store_aromas WHERE active=1 ORDER BY name COLLATE NOCASE").bind().all<{ id: string; name: string }>()).results;
   } catch {
     // Avoid revealing whether Access, provisioned identity or D1 is missing.
@@ -70,7 +74,11 @@ export default async function AdminHomePage() {
           Existencias por variante y aroma. Cada ajuste requiere un motivo
           y queda registrado con la identidad del administrador.
         </p>
-        <div className="mt-8 overflow-x-auto rounded-2xl bg-white shadow-sm">
+        <nav className="mt-6 flex flex-wrap gap-3 text-sm">
+          <Link href="/admin" className={`rounded-lg px-4 py-2 ${!showArchived ? "bg-[#231F20] text-white" : "border bg-white"}`}>Catálogo activo y borradores</Link>
+          <Link href="/admin?archived=1" className={`rounded-lg px-4 py-2 ${showArchived ? "bg-[#231F20] text-white" : "border bg-white"}`}>Ver archivados</Link>
+        </nav>
+        <div className="mt-5 overflow-x-auto rounded-2xl bg-white shadow-sm">
           <table className="w-full text-left text-sm">
             <thead className="bg-[#F6EADC]">
               <tr>
@@ -123,7 +131,7 @@ export default async function AdminHomePage() {
               ))}
               {rows.length === 0 && (
                 <tr><td colSpan={canEditInventory ? 6 : 5} className="p-6 text-center">
-                  Aún no hay productos cargados en D1.
+                  {showArchived ? "No hay productos archivados." : "No hay productos activos ni borradores."}
                 </td></tr>
               )}
             </tbody>
