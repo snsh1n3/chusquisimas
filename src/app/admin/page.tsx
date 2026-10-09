@@ -6,6 +6,7 @@ import { can } from "@/lib/admin/permissions";
 import { InventoryEditor } from "@/components/admin/inventory-editor";
 import { PriceEditor } from "@/components/admin/price-editor";
 import { AddVariant } from "@/components/admin/add-variant";
+import { ProductPhotoUpload } from "@/components/admin/product-photo-upload";
 import { CreateProductForm, ProductVisibility, VariantVisibility, EditProduct } from "@/components/admin/product-manager";
 
 export const dynamic = "force-dynamic";
@@ -96,6 +97,7 @@ export default async function AdminHomePage({ searchParams }: {
                   className="border-t border-[#EDE3D7] align-top">
                   <td className="p-4">
                     <strong>{row.product_name}</strong>
+                    {(index === 0 || rows[index - 1]?.product_id !== row.product_id) && canManageProducts && <ProductPhotoUpload productId={row.product_id} />}
                     {(index === 0 || rows[index - 1]?.product_id !== row.product_id) && canManageProducts && <EditProduct id={row.product_id} initialName={row.product_name} initialDescription={row.product_description} initialType={row.product_type} status={row.product_status} />}
                     {index === 0 || rows[index - 1]?.product_id !== row.product_id ? (
                       canManageProducts ? <ProductVisibility id={row.product_id} status={row.product_status} canPublish={row.product_ready === 1} /> : <div className="text-xs">{row.product_status}</div>
