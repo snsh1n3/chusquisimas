@@ -144,6 +144,7 @@ export async function deleteArchivedProduct(
   const safe = `p.id=? AND p.name=? AND p.status='archived'
     AND NOT EXISTS (SELECT 1 FROM store_variants v WHERE v.product_id=p.id
       AND (v.on_hand<>0 OR v.reserved<>0))
+    AND NOT EXISTS (SELECT 1 FROM store_product_images i WHERE i.product_id=p.id)
     AND NOT EXISTS (SELECT 1 FROM store_inventory_movements m
       JOIN store_variants v ON v.id=m.variant_id WHERE v.product_id=p.id)`;
   // Audit first, then dependent rows and the product. A failed guarded
