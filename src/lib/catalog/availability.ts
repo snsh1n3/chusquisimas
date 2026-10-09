@@ -76,3 +76,35 @@ export function getVariantAvailability(
     availableQuantity: 0,
   };
 }
+
+/** Disponibilidad para la cantidad solicitada, sin reservar inventario. */
+export function getQuantityAvailability(
+  variant: ProductVariant,
+  quantity: number
+): VariantAvailability {
+  if (!Number.isSafeInteger(quantity) || quantity < 1) {
+    throw new Error("La cantidad debe ser un entero positivo.");
+  }
+  const availability = getVariantAvailability(variant);
+  if (availability.status !== "ready_to_ship") return availability;
+  if (availability.availableQuantity === null ||
+      availability.availableQuantity >= quantity) return availability;
+  const madeToOrder = variant.fulfillmentPolicies.find(
+    (policy): policy is Extract<FulfillmentPolicy, { mode: "made_to_order" }> =>
+      policy.mode === "made_to_order"
+  );
+  if (!madeToOrder) {
+    return {
+      status: "out_of_stock",
+      purchasable: false,
+      availableQuantity: availability.availableQuantity,
+    };
+  }
+  return {
+    status: "made_to_order",
+    purchasable: true,
+    availableQuantity: null,
+    preparationDaysMin: madeToOrder.preparationDaysMin,
+    preparationDaysMax: madeToOrder.preparationDaysMax,
+  };
+}
