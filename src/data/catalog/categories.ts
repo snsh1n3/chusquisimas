@@ -22,4 +22,11 @@ export const catalogCategories: CatalogCategory[] = [
     description: "Creaciones especiales que se adaptan a tu idea.",
     sortOrder: 3,
   },
+  {
+    id: "cat-kits",
+    slug: "kits",
+    name: "Kits",
+    description: "Combinaciones de regalos y aromas de Chusquisimas.",
+    sortOrder: 4,
+  },
 ];
