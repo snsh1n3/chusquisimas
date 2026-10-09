@@ -4,7 +4,7 @@ import { requireAuthenticatedAdmin } from "@/lib/admin/server-auth";
 import { can } from "@/lib/admin/permissions";
 import { InventoryEditor } from "@/components/admin/inventory-editor";
 import { PriceEditor } from "@/components/admin/price-editor";
-import { CreateProductForm, ProductVisibility } from "@/components/admin/product-manager";
+import { CreateProductForm, ProductVisibility, VariantVisibility } from "@/components/admin/product-manager";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -20,6 +20,7 @@ interface AdminVariantRow {
   variant_id: string | null;
   sku: string | null;
   variant_label: string | null;
+  variant_status: "active" | "inactive" | null;
   aroma_name: string | null;
   on_hand: number | null;
   reserved: number | null;
@@ -39,7 +40,7 @@ export default async function AdminHomePage() {
     const response = await database.prepare(`
       SELECT p.id AS product_id, p.name AS product_name, p.status AS product_status,
         EXISTS(SELECT 1 FROM store_variants av WHERE av.product_id=p.id AND av.status='active' AND av.price_cop IS NOT NULL) AS product_ready,
-        v.id AS variant_id, v.sku, v.label AS variant_label,
+        v.id AS variant_id, v.sku, v.label AS variant_label, v.status AS variant_status,
         a.name AS aroma_name, v.on_hand, v.reserved, v.price_cop
       FROM store_products p
       LEFT JOIN store_variants v ON v.product_id = p.id
@@ -88,7 +89,8 @@ export default async function AdminHomePage() {
                   <td className="p-4">
                     {row.variant_id ? (
                       <><div>{row.variant_label || row.aroma_name || "Sin presentación"}</div>
-                        <div className="text-xs text-[#66584D]">{row.sku}</div></>
+                        <div className="text-xs text-[#66584D]">{row.sku}</div>
+                        {canEditPrices && row.variant_status && <VariantVisibility id={row.variant_id} status={row.variant_status} hasPrice={row.price_cop !== null} />}</>
                     ) : "Sin variantes registradas"}
                   </td>
                   <td className="p-4">
