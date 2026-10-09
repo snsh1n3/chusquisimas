@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireAuthenticatedAdmin } from "@/lib/admin/server-auth";
 import { can } from "@/lib/admin/permissions";
 import { InventoryEditor } from "@/components/admin/inventory-editor";
+import { PriceEditor } from "@/components/admin/price-editor";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -26,9 +27,11 @@ interface AdminVariantRow {
 export default async function AdminHomePage() {
   let rows: AdminVariantRow[] = [];
   let canEditInventory = false;
+  let canEditPrices = false;
   try {
     const { database, principal } = await requireAuthenticatedAdmin("catalog.read");
     canEditInventory = can(principal, "inventory.write");
+    canEditPrices = can(principal, "catalog.write");
     const response = await database.prepare(`
       SELECT p.id AS product_id, p.name AS product_name, p.status AS product_status,
         v.id AS variant_id, v.sku, v.label AS variant_label,
@@ -82,7 +85,10 @@ export default async function AdminHomePage() {
                     ) : "Sin variantes registradas"}
                   </td>
                   <td className="p-4">
-                    {row.price_cop === null ? "Pendiente" :
+                    {canEditPrices && row.variant_id ? (
+                      <PriceEditor key={`${row.variant_id}:${row.price_cop}`}
+                        variantId={row.variant_id} previous={row.price_cop} />
+                    ) : row.price_cop === null ? "Pendiente" :
                       new Intl.NumberFormat("es-CO", {
                         style: "currency", currency: "COP",
                         maximumFractionDigits: 0,
