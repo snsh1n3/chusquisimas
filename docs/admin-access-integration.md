@@ -11,10 +11,10 @@ La aplicación de Cloudflare Access ya se creó para `admin.chusquisimas.com`, s
 
 ## Requisitos antes de integrar la autenticación en rutas
 
-1. En Zero Trust > Access > Applications > Chusquisimas Admin, obtener el **Application Audience (AUD) tag**. Se puede compartir el AUD para configurar una variable; no es una clave privada.
+1. **Application Audience (AUD) tag confirmado** para Chusquisimas Admin, configurado en `wrangler.jsonc`. El AUD identifica la aplicación y no es una clave privada.
 2. Team domain confirmado: `blue-recipe-53e6.cloudflareaccess.com`. Debe introducirse sin `https://`.
 3. Mantener una política `Allow` limitada a los dos correos autorizados; activar MFA mediante el proveedor de identidad adecuado.
-4. Configurar `ACCESS_TEAM_DOMAIN` y `ACCESS_AUD` como variables en el entorno correspondiente; **no codificar un AUD de ejemplo**.
+4. `ACCESS_TEAM_DOMAIN` y `ACCESS_AUD` están configuradas como variables no secretas en `wrangler.jsonc`. Corroborar ambos valores antes de desplegar. El team domain corresponde a la cuenta Zero Trust, no exclusivamente a Chusquisimas.
 5. Conectar la función `verifyAccessToken` del módulo `src/lib/admin/access-jwt.ts` con las rutas administrativas y comprobar además `admin_users.status='active'` y permisos en D1. Por ahora el verificador es una librería independiente, no una protección instalada en rutas.
 6. Denegar toda solicitud sin JWT válido, sin coincidencia en D1 o con permisos insuficientes. Probar acceso de usuarios suspendidos y acceso directo a endpoints.
 7. Asegurar que no haya ningún camino alternativo en el hostname público, Workers ni endpoints que omita validación.
