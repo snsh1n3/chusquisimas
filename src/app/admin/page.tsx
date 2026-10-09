@@ -4,6 +4,7 @@ import { requireAuthenticatedAdmin } from "@/lib/admin/server-auth";
 import { can } from "@/lib/admin/permissions";
 import { InventoryEditor } from "@/components/admin/inventory-editor";
 import { PriceEditor } from "@/components/admin/price-editor";
+import { AddVariant } from "@/components/admin/add-variant";
 import { CreateProductForm, ProductVisibility, VariantVisibility } from "@/components/admin/product-manager";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +16,7 @@ export const metadata: Metadata = {
 interface AdminVariantRow {
   product_id: string;
   product_name: string;
+  product_type: "candle" | "wax_melt" | "kit" | "custom";
   product_status: "draft" | "active" | "archived";
   product_ready: number;
   variant_id: string | null;
@@ -29,6 +31,7 @@ interface AdminVariantRow {
 
 export default async function AdminHomePage() {
   let rows: AdminVariantRow[] = [];
+  let aromas: { id: string; name: string }[] = [];
   let canEditInventory = false;
   let canManageProducts = false;
   let canEditPrices = false;
@@ -38,7 +41,7 @@ export default async function AdminHomePage() {
     canEditPrices = can(principal, "catalog.write");
     canManageProducts = canEditPrices;
     const response = await database.prepare(`
-      SELECT p.id AS product_id, p.name AS product_name, p.status AS product_status,
+      SELECT p.id AS product_id, p.name AS product_name, p.product_type, p.status AS product_status,
         EXISTS(SELECT 1 FROM store_variants av WHERE av.product_id=p.id AND av.status='active' AND av.price_cop IS NOT NULL) AS product_ready,
         v.id AS variant_id, v.sku, v.label AS variant_label, v.status AS variant_status,
         a.name AS aroma_name, v.on_hand, v.reserved, v.price_cop
@@ -48,6 +51,7 @@ export default async function AdminHomePage() {
       ORDER BY p.name COLLATE NOCASE, v.sku
     `).bind().all<AdminVariantRow>();
     rows = response.results;
+    aromas = (await database.prepare("SELECT id,name FROM store_aromas WHERE active=1 ORDER BY name COLLATE NOCASE").bind().all<{ id: string; name: string }>()).results;
   } catch {
     // Avoid revealing whether Access, provisioned identity or D1 is missing.
     notFound();
@@ -94,6 +98,7 @@ export default async function AdminHomePage() {
                         <div className="text-xs text-[#66584D]">{row.sku}</div>
                         {canEditPrices && row.variant_status && <VariantVisibility id={row.variant_id} status={row.variant_status} hasPrice={row.price_cop !== null} />}</>
                     ) : "Sin variantes registradas"}
+                    {(index === 0 || rows[index - 1]?.product_id !== row.product_id) && canManageProducts && <AddVariant productId={row.product_id} productType={row.product_type} aromas={aromas} />}
                   </td>
                   <td className="p-4">
                     {canEditPrices && row.variant_id ? (
