@@ -46,8 +46,11 @@ export async function createDraftProduct(
   const audit = db.prepare(
     "INSERT INTO admin_audit_log (id,actor_user_id,action,resource_type,resource_id,details_json) VALUES (?,?,'product_create','product',?,json_object('name',?,'status','draft'))"
   ).bind(auditId, actorId, productId, product.name);
-  const results = await db.batch([insert, audit]);
-  if (results.length !== 2 || results.some(x => !x.success || x.meta.changes !== 1)) {
+  const initialVariant = db.prepare(
+    "INSERT INTO store_variants (id,product_id,sku,label,status,price_cop,on_hand,reserved) VALUES (?,?,?, ?,'inactive',NULL,0,0)"
+  ).bind(`variant-${productId}`, productId, `CHV2-${productId.slice(0, 12)}`, "Presentación estándar");
+  const results = await db.batch([insert, initialVariant, audit]);
+  if (results.length !== 3 || results.some(x => !x.success || x.meta.changes !== 1)) {
     throw Error("No se pudo crear el producto");
   }
   return { id: productId, slug };
