@@ -23,7 +23,7 @@ function signedToken(payload: object) {
     .toString("base64url");
   return [...parts, signature].join(".");
 }
-const fetchJwks = (async (_url: string) =>
+const fetchJwks = (async () =>
   ({ ok: true, json: async () => ({ keys: [jwk] }) })) as typeof fetch;
 const cfg = { teamDomain, audience };
 
