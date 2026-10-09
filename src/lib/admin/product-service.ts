@@ -88,3 +88,43 @@ export async function changeProductStatus(
     throw new ProductConflictError("Estado desactualizado o ninguna variante activa con precio");
   }
 }
+
+/** Keep stable product IDs, slugs and SKUs while editing display metadata. */
+export async function editProduct(
+  db: ProductDatabase,
+  input: { id: string; expectedName: string; name: string; description: string; productType: string },
+  actorId: string,
+  auditId: string,
+) {
+  if (!input.id || input.id.length > 120 || typeof input.expectedName !== "string") {
+    throw new ProductConflictError("Producto inválido");
+  }
+  const product = validateNewProduct(input);
+  const category = product.productType === "candle" ? "cat-velas-aromaticas"
+    : product.productType === "wax_melt" ? "cat-wax-melts"
+    : product.productType === "kit" ? "cat-kits" : "cat-personalizados";
+  const audit = db.prepare(`
+    INSERT INTO admin_audit_log (id,actor_user_id,action,resource_type,resource_id,details_json)
+    SELECT ?,?,'product_edit','product',id,
+      json_object('old_name',name,'new_name',?,'old_description',description,'new_description',?,
+                  'old_type',product_type,'new_type',?)
+    FROM store_products WHERE id=? AND name=?
+  `).bind(auditId, actorId, product.name, product.description, product.productType,
+    input.id, input.expectedName);
+  const update = db.prepare(`
+    UPDATE store_products SET name=?, description=?, product_type=?, updated_at=CURRENT_TIMESTAMP
+    WHERE id=? AND name=? AND EXISTS
+    (SELECT 1 FROM admin_audit_log WHERE id=? AND resource_id=store_products.id)
+  `).bind(product.name, product.description, product.productType,
+    input.id, input.expectedName, auditId);
+  const unlink = db.prepare("DELETE FROM store_product_categories WHERE product_id=?")
+    .bind(input.id);
+  const link = db.prepare("INSERT INTO store_product_categories(product_id,category_id) VALUES(?,?)")
+    .bind(input.id, category);
+  const results = await db.batch([audit, update, unlink, link]);
+  if (results.length !== 4 || !results[0]?.success || results[0].meta.changes !== 1 ||
+      !results[1]?.success || results[1].meta.changes !== 1 ||
+      !results[2]?.success || !results[3]?.success || results[3].meta.changes !== 1) {
+    throw new ProductConflictError("Producto desactualizado. Recarga e inténtalo otra vez.");
+  }
+}
