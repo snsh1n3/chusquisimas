@@ -166,6 +166,19 @@ export function EditProduct({
       setNotice(error instanceof Error ? error.message : "Error inesperado");
     } finally { setBusy(false); }
   }
+  async function permanentlyDelete() {
+    const confirmation = window.prompt(
+      'Eliminará permanentemente el producto y sus variantes sin movimientos. Escribe ELIMINAR para continuar.'
+    );
+    if (confirmation !== "ELIMINAR") return;
+    setBusy(true); setNotice("");
+    try {
+      await request({ action: "delete", id, expectedName: initialName, confirmation });
+      setNotice("Producto eliminado de forma definitiva.");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "No se pudo eliminar");
+    } finally { setBusy(false); }
+  }
   async function archive() {
     if (!window.confirm(`¿Archivar "${initialName}"? Se ocultará de la tienda, pero conservará sus variantes y auditorías.`)) return;
     setBusy(true); setNotice("");
@@ -180,6 +193,10 @@ export function EditProduct({
     <div className="flex flex-wrap gap-2">
       <button type="button" onClick={() => setOpen(v => !v)}
         className="rounded border px-2 py-1">Editar producto</button>
+      {status === "archived" && <button type="button" disabled={busy} onClick={permanentlyDelete}
+        className="rounded border border-red-400 px-2 py-1 font-semibold text-red-700 disabled:opacity-40">
+        Eliminar definitivamente
+      </button>}
       {status !== "archived" && <button type="button" disabled={busy} onClick={archive}
         className="rounded border border-red-200 px-2 py-1 text-red-700 disabled:opacity-40">
         Archivar / retirar
