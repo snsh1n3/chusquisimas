@@ -44,6 +44,10 @@ try:
 except sqlite3.IntegrityError:
     pass
 
+# Remove only the synthetic row from the isolated test database.
+db.execute("DELETE FROM store_variants WHERE id = 'test-v'")
+assert db.execute("SELECT COUNT(*) FROM store_variants").fetchone()[0] == 0
+
 print("SQLite schema, 19 draft products, 6 aromas, idempotence and constraints: PASS")
 
 # Candidate variants are not yet in remote D1. Check the optional seed locally.
