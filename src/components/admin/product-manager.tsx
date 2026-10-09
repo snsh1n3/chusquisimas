@@ -131,3 +131,83 @@ export function VariantVisibility({
     </div>
   );
 }
+
+export function EditProduct({
+  id, initialName, initialDescription, initialType, status,
+}: {
+  id: string; initialName: string; initialDescription: string;
+  initialType: "candle" | "wax_melt" | "kit" | "custom";
+  status: ProductStatus;
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(initialName);
+  const [description, setDescription] = useState(initialDescription);
+  const [productType, setProductType] = useState(initialType);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
+  async function request(payload: Record<string, unknown>) {
+    const response = await fetch("/api/admin/products", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json() as { error?: string };
+    if (!response.ok) throw Error(data.error || "Operación rechazada");
+    router.refresh();
+  }
+  async function save(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true); setNotice("");
+    try {
+      await request({ action: "edit", id, expectedName: initialName, name, description, productType });
+      setNotice("Cambios guardados.");
+      setOpen(false);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Error inesperado");
+    } finally { setBusy(false); }
+  }
+  async function archive() {
+    if (!window.confirm(`¿Archivar "${initialName}"? Se ocultará de la tienda, pero conservará sus variantes y auditorías.`)) return;
+    setBusy(true); setNotice("");
+    try {
+      await request({ action: "visibility", id, previous: status, target: "archived" });
+      setNotice("Producto archivado.");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Error inesperado");
+    } finally { setBusy(false); }
+  }
+  return <div className="mt-2 text-xs">
+    <div className="flex flex-wrap gap-2">
+      <button type="button" onClick={() => setOpen(v => !v)}
+        className="rounded border px-2 py-1">Editar producto</button>
+      {status !== "archived" && <button type="button" disabled={busy} onClick={archive}
+        className="rounded border border-red-200 px-2 py-1 text-red-700 disabled:opacity-40">
+        Archivar / retirar
+      </button>}
+    </div>
+    {open && <form onSubmit={save} className="mt-2 flex min-w-44 flex-col gap-2 rounded border bg-white p-2">
+      <label>Nombre
+        <input required minLength={2} maxLength={120} value={name}
+          onChange={e => setName(e.target.value)} className="w-full rounded border p-2" />
+      </label>
+      <label>Descripción
+        <textarea maxLength={2000} value={description}
+          onChange={e => setDescription(e.target.value)} className="w-full rounded border p-2" />
+      </label>
+      <label>Tipo / categoría
+        <select value={productType} onChange={e => setProductType(e.target.value as typeof productType)}
+          className="w-full rounded border p-2">
+          <option value="candle">Vela</option>
+          <option value="wax_melt">Wax melts</option>
+          <option value="kit">Kit</option>
+          <option value="custom">Personalizado</option>
+        </select>
+      </label>
+      <button type="submit" disabled={busy}
+        className="rounded bg-[#231F20] px-2 py-2 text-white disabled:opacity-40">
+        {busy ? "Guardando..." : "Guardar cambios"}
+      </button>
+    </form>}
+    {notice && <p role="status" className="mt-1">{notice}</p>}
+  </div>;
+}
