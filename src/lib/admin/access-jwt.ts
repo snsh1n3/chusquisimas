@@ -65,7 +65,7 @@ export async function verifyAccessToken(
   const url = `${expectedIssuer}/cdn-cgi/access/certs`;
   const response = await fetchJwks(url, { cache: "no-store" });
   if (!response.ok) throw new Error("No se pudieron consultar las claves de Access");
-  const jwks = await response.json() as { keys?: JsonWebKey[] };
+  const jwks = await response.json() as { keys?: Array<JsonWebKey & { kid?: string; alg?: string; use?: string }> };
   const key = jwks.keys?.find((item) => item.kid === header.kid &&
     item.kty === "RSA" && item.alg === "RS256" && item.use === "sig");
   if (!key) throw new Error("Clave Access desconocida");
@@ -73,7 +73,7 @@ export async function verifyAccessToken(
     name: "RSASSA-PKCS1-v1_5", hash: "SHA-256",
   }, false, ["verify"]);
   const signedData = new TextEncoder().encode(`${parts[0]}.${parts[1]}`);
-  const signature = base64urlDecode(parts[2]);
+  const signature = Uint8Array.from(base64urlDecode(parts[2])).buffer;
   const valid = await crypto.subtle.verify(
     "RSASSA-PKCS1-v1_5", cryptoKey, signature, signedData
   );
