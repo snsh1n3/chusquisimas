@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createPublicKey, generateKeyPairSync, sign } from "node:crypto";
+import { generateKeyPairSync, sign } from "node:crypto";
 import { verifyAccessToken } from "../../src/lib/admin/access-jwt.ts";
 
 const teamDomain = "test-org.cloudflareaccess.com";
@@ -8,7 +8,7 @@ const audience = "expected-audience";
 const { privateKey, publicKey } = generateKeyPairSync("rsa", {
   modulusLength: 2048,
 });
-const jwk = { ...createPublicKey(publicKey).export({ format: "jwk" }),
+const jwk = { ...publicKey.export({ format: "jwk" }),
   kid: "test-key", alg: "RS256", use: "sig" };
 const toPart = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
 const claims = (override: Record<string, unknown> = {}) => ({
