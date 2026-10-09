@@ -14,6 +14,8 @@ db.executescript((root / "seeds/initial_catalog.sql").read_text(encoding="utf-8"
 db.executescript((root / "seeds/candle_variants.sql").read_text(encoding="utf-8"))
 db.execute("INSERT INTO admin_users(id,email,status) VALUES ('test-admin','test@example.org','active')")
 variant_id = "variant-titina-cafe"
+# Finish fixture setup before explicit transaction tests begin.
+db.commit()
 
 def stock_adjust(expected, target, movement):
     db.execute("BEGIN")
