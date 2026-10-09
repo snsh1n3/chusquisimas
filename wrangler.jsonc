@@ -31,6 +31,20 @@
 			"service": "chusquisimas-v2"
 		}
 	],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "chusquisimas-v2-db",
+			"database_id": "33bc240c-8661-422c-8833-39a828c577dd",
+			"migrations_dir": "migrations"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "PRODUCT_IMAGES",
+			"bucket_name": "chusquisimas-v2-images"
+		}
+	],
 	"observability": {
 		"enabled": true
 	},
