@@ -49,8 +49,14 @@ export async function createDraftProduct(
   const initialVariant = db.prepare(
     "INSERT INTO store_variants (id,product_id,sku,label,status,price_cop,on_hand,reserved) VALUES (?,?,?, ?,'inactive',NULL,0,0)"
   ).bind(`variant-${productId}`, productId, `CHV2-${productId.slice(0, 12)}`, "Presentación estándar");
-  const results = await db.batch([insert, initialVariant, audit]);
-  if (results.length !== 3 || results.some(x => !x.success || x.meta.changes !== 1)) {
+  const category = product.productType === "candle" ? "cat-velas-aromaticas"
+    : product.productType === "wax_melt" ? "cat-wax-melts"
+    : product.productType === "kit" ? "cat-kits" : "cat-personalizados";
+  const linkCategory = db.prepare(
+    "INSERT INTO store_product_categories (product_id,category_id) VALUES (?,?)"
+  ).bind(productId, category);
+  const results = await db.batch([insert, initialVariant, linkCategory, audit]);
+  if (results.length !== 4 || results.some(x => !x.success || x.meta.changes !== 1)) {
     throw Error("No se pudo crear el producto");
   }
   return { id: productId, slug };
