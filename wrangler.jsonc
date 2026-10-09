@@ -45,6 +45,10 @@
 			"bucket_name": "chusquisimas-v2-images"
 		}
 	],
+	"vars": {
+		"ACCESS_TEAM_DOMAIN": "jfcastill0.cloudflareaccess.com",
+		"ACCESS_AUD": "9099bcfe511397e805c3c26d00b8b5acc878c8dc8e5da3fb4d92e559e1515e12"
+	},
 	"observability": {
 		"enabled": true
 	},
