@@ -23,8 +23,10 @@ function signedToken(payload: object) {
     .toString("base64url");
   return [...parts, signature].join(".");
 }
-const fetchJwks = (async () =>
-  ({ ok: true, json: async () => ({ keys: [jwk] }) })) as typeof fetch;
+const fetchJwks = (async (input: URL | RequestInfo) => {
+  assert.equal(String(input), `https://${teamDomain}/cdn-cgi/access/certs`);
+  return { ok: true, json: async () => ({ keys: [jwk] }) };
+}) as unknown as typeof fetch;
 const cfg = { teamDomain, audience };
 
 test("accepts properly signed Access token with expected audience", async () => {
