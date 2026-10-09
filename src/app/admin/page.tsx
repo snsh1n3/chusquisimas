@@ -4,6 +4,7 @@ import { requireAuthenticatedAdmin } from "@/lib/admin/server-auth";
 import { can } from "@/lib/admin/permissions";
 import { InventoryEditor } from "@/components/admin/inventory-editor";
 import { PriceEditor } from "@/components/admin/price-editor";
+import { CreateProductForm, ProductVisibility } from "@/components/admin/product-manager";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -14,7 +15,8 @@ export const metadata: Metadata = {
 interface AdminVariantRow {
   product_id: string;
   product_name: string;
-  product_status: string;
+  product_status: "draft" | "active" | "archived";
+  product_ready: number;
   variant_id: string | null;
   sku: string | null;
   variant_label: string | null;
@@ -27,13 +29,16 @@ interface AdminVariantRow {
 export default async function AdminHomePage() {
   let rows: AdminVariantRow[] = [];
   let canEditInventory = false;
+  let canManageProducts = false;
   let canEditPrices = false;
   try {
     const { database, principal } = await requireAuthenticatedAdmin("catalog.read");
     canEditInventory = can(principal, "inventory.write");
     canEditPrices = can(principal, "catalog.write");
+    canManageProducts = canEditPrices;
     const response = await database.prepare(`
       SELECT p.id AS product_id, p.name AS product_name, p.status AS product_status,
+        EXISTS(SELECT 1 FROM store_variants av WHERE av.product_id=p.id AND av.status='active' AND av.price_cop IS NOT NULL) AS product_ready,
         v.id AS variant_id, v.sku, v.label AS variant_label,
         a.name AS aroma_name, v.on_hand, v.reserved, v.price_cop
       FROM store_products p
@@ -53,7 +58,8 @@ export default async function AdminHomePage() {
         <p className="text-sm font-semibold uppercase tracking-widest text-[#C86021]">
           Chusquisimas Admin
         </p>
-        <h1 className="mt-3 text-3xl font-bold">Inventario</h1>
+        <h1 className="mt-3 text-3xl font-bold">Catálogo e inventario</h1>
+        {canManageProducts && <section className="mt-7"><h2 className="text-xl font-bold">Añadir producto</h2><CreateProductForm /></section>}
         <p className="mt-3 text-sm text-[#66584D]">
           Existencias por variante y aroma. Cada ajuste requiere un motivo
           y queda registrado con la identidad del administrador.
@@ -62,7 +68,7 @@ export default async function AdminHomePage() {
           <table className="w-full text-left text-sm">
             <thead className="bg-[#F6EADC]">
               <tr>
-                <th scope="col" className="p-4">Producto</th>
+                <th scope="col" className="p-4">Producto / visibilidad</th>
                 <th scope="col" className="p-4">Variante / aroma</th>
                 <th scope="col" className="p-4">Precio</th>
                 <th scope="col" className="p-4">En mano</th>
@@ -76,7 +82,8 @@ export default async function AdminHomePage() {
                   className="border-t border-[#EDE3D7] align-top">
                   <td className="p-4">
                     <strong>{row.product_name}</strong>
-                    <div className="text-xs text-[#66584D]">{row.product_status}</div>
+                    {canManageProducts ? <ProductVisibility id={row.product_id} status={row.product_status} canPublish={row.product_ready === 1} /> : <div className="text-xs">{row.product_status}</div>}
+                    {row.product_status !== "active" && row.product_ready !== 1 && <div className="text-xs text-[#66584D]">Requiere variante activa con precio para publicar</div>}
                   </td>
                   <td className="p-4">
                     {row.variant_id ? (
