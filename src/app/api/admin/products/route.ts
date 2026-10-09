@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuthenticatedAdmin } from "@/lib/admin/server-auth";
 import {
-  createDraftProduct, changeProductStatus, validateStatus, ProductConflictError,
+  createDraftProduct, changeProductStatus, editProduct, validateStatus, ProductConflictError,
   type ProductDatabase,
 } from "@/lib/admin/product-service";
 
@@ -34,6 +34,20 @@ export async function POST(request: NextRequest) {
         name: v.name, description: v.description, productType: v.productType,
       }, principal.id, crypto.randomUUID(), crypto.randomUUID());
       return NextResponse.json({ created: true, ...product }, { status: 201, headers: { "Cache-Control": "no-store" } });
+    }
+    if (v.action === "edit") {
+      if (typeof v.id !== "string" || typeof v.expectedName !== "string" ||
+          typeof v.name !== "string" || typeof v.description !== "string" ||
+          typeof v.productType !== "string") {
+        return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
+      }
+      await editProduct(db, {
+        id: v.id, expectedName: v.expectedName, name: v.name,
+        description: v.description, productType: v.productType,
+      }, principal.id, crypto.randomUUID());
+      return NextResponse.json({ updated: true }, {
+        headers: { "Cache-Control": "no-store" },
+      });
     }
     if (v.action === "visibility") {
       if (typeof v.id !== "string") throw Error("ID inválido");
