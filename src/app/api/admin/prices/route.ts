@@ -6,6 +6,14 @@ export async function POST(request: NextRequest) {
   if (request.headers.get("origin") !== "https://admin.chusquisimas.com") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+  const type = request.headers.get("content-type") ?? "";
+  if (!type.toLowerCase().startsWith("application/json")) {
+    return NextResponse.json({ error: "Formato inválido" }, { status: 415 });
+  }
+  const size = Number(request.headers.get("content-length") ?? "0");
+  if (!Number.isFinite(size) || size > 4096) {
+    return NextResponse.json({ error: "Solicitud demasiado grande" }, { status: 413 });
+  }
   try {
     const { principal, database } = await requireAuthenticatedAdmin("catalog.write");
     const body = await request.text();
