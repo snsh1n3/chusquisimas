@@ -1,3 +1,4 @@
+import { ValidationError } from "../observability/errors.ts";
 /** Validate uploaded product images before persisting them in R2.
  * Only re-encoded raster formats are accepted; SVG and user-supplied filenames
  * are never used as a storage key.
@@ -25,17 +26,17 @@ export function validateProductImage(
   declaredType: string
 ): ProductImageType {
   if (bytes.length === 0 || bytes.length > MAX_IMAGE_BYTES)
-    throw new Error("La imagen debe tener entre 1 byte y 5 MB.");
+    throw new ValidationError("image_size_invalid", "La imagen debe tener entre 1 byte y 5 MB.");
   const recognizedType = identifyRasterImage(bytes);
   if (!recognizedType || recognizedType !== declaredType)
-    throw new Error("Formato de imagen no permitido.");
+    throw new ValidationError("image_format_invalid", "Formato de imagen no permitido.");
   return recognizedType;
 }
 
 export function buildPrivateImageKey(productId: string, imageId: string, type: ProductImageType): string {
   if (!/^product-[a-z0-9-]{1,100}$/.test(productId) ||
       !/^[0-9a-f-]{36}$/.test(imageId))
-    throw new Error("Identificadores inválidos.");
+    throw new ValidationError("image_ids_invalid", "Identificadores inválidos.");
   const extension = type === "image/png" ? "png" : type === "image/jpeg" ? "jpg" : "webp";
   return `products/${productId}/${imageId}.${extension}`;
 }

@@ -4,7 +4,9 @@ import { SiteHeader } from "@/components/layout/site-header";
 import type { Metadata } from "next";
 
 import { getCatalogCategories } from "@/data/catalog";
-import { getPublishedCatalog } from "@/lib/catalog/d1-published";
+import { getPublicCatalog } from "@/lib/catalog/d1-published";
+import type { PublicCatalog } from "@/lib/catalog/public-catalog";
+import { createLogger, describeError } from "@/lib/observability/logger";
 
 export const dynamic = "force-dynamic";
 
@@ -28,10 +30,18 @@ export default async function StorePage({
     (item) => item.slug === categoria
   );
 
-  const published = await getPublishedCatalog();
+  let published: PublicCatalog | null = null;
+  try {
+    published = await getPublicCatalog();
+  } catch (error) {
+    // La tienda muestra un estado de error amable; el detalle queda en Workers Logs.
+    createLogger({ operation: "public.store.render" })
+      .error("store.catalog_unavailable", describeError(error));
+  }
+  const allProducts = published?.products ?? [];
   const products = selectedCategory
-    ? published.products.filter(p => p.categoryIds.includes(selectedCategory.id))
-    : published.products;
+    ? allProducts.filter(p => p.categoryIds.includes(selectedCategory.id))
+    : allProducts;
 
   return (
     <main className="min-h-screen bg-[#F7F1E9] text-[#231F20]">
@@ -86,7 +96,20 @@ export default async function StorePage({
         </nav>
 
         <div className="mt-12 rounded-3xl border border-[#EDE3D7] bg-[#FFFDF9] px-6 py-16 text-center sm:px-12">
-          {products.length === 0 ? (
+          {published === null ? (
+            <>
+              <p className="text-4xl" aria-hidden="true">
+                🕯️
+              </p>
+              <h2 className="mt-5 text-2xl font-bold">
+                No pudimos cargar el catálogo.
+              </h2>
+              <p className="mx-auto mt-3 max-w-md leading-7 text-[#66584D]">
+                Estamos teniendo un inconveniente temporal. Recarga la página
+                en unos minutos o escríbenos por WhatsApp.
+              </p>
+            </>
+          ) : products.length === 0 ? (
             <>
               <p className="text-4xl" aria-hidden="true">
                 ✨
@@ -121,7 +144,7 @@ export default async function StorePage({
                     <ProductCard
                       key={product.id}
                       product={product}
-                      variants={published.variants.filter(v => v.productId === product.id)}
+                      variants={published?.variants.filter(v => v.productId === product.id) ?? []}
                       categoryName={category?.name}
                     />
                   );

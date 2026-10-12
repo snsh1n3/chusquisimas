@@ -1,6 +1,7 @@
 import "server-only";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { CatalogProduct, ProductVariant } from "@/types/catalog";
+import { toPublicCatalog, type PublicCatalog } from "./public-catalog";
 
 interface Row {
   id: string; slug: string; name: string; description: string;
@@ -14,6 +15,10 @@ interface VariantRow {
 interface CategoryRow { product_id: string; category_id: string; }
 interface ImageRow { id: string; product_id: string; alt_text: string; sort_order: number; }
 
+/**
+ * Catálogo publicado con datos internos (incluye on_hand/reserved).
+ * Uso exclusivo del servidor: para la tienda usa getPublicCatalog().
+ */
 export async function getPublishedCatalog(): Promise<{
   products: CatalogProduct[]; variants: ProductVariant[];
 }> {
@@ -60,4 +65,12 @@ export async function getPublishedCatalog(): Promise<{
     ],
   }));
   return { products, variants };
+}
+
+/**
+ * Catálogo listo para la tienda: sin cantidades de inventario.
+ * Es lo único que deben recibir páginas y componentes públicos.
+ */
+export async function getPublicCatalog(): Promise<PublicCatalog> {
+  return toPublicCatalog(await getPublishedCatalog());
 }

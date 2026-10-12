@@ -1,3 +1,4 @@
+import { ConflictError } from "../observability/errors.ts";
 import { validatePriceEdit } from "./catalog-inputs.ts";
 
 export interface PriceDatabase {
@@ -5,7 +6,12 @@ export interface PriceDatabase {
   batch(statements: unknown[]): Promise<Array<{ success: boolean; meta: { changes?: number } }>>;
 }
 
-export class PriceConflictError extends Error {}
+export class PriceConflictError extends ConflictError {
+  constructor(message: string) {
+    super(message, "price_conflict");
+    this.name = "PriceConflictError";
+  }
+}
 
 export async function updatePrice(
   db: PriceDatabase,

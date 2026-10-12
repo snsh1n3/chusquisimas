@@ -1,3 +1,4 @@
+import { ConflictError, ValidationError } from "../observability/errors.ts";
 import { validateInventoryEdit, type InventoryEdit } from "./catalog-inputs.ts";
 
 /**
@@ -17,8 +18,11 @@ export interface InventoryDatabase {
   }>>;
 }
 
-export class InventoryConflictError extends Error {
-  constructor() { super("El inventario cambió. Actualiza la página e inténtalo nuevamente."); }
+export class InventoryConflictError extends ConflictError {
+  constructor() {
+    super("El inventario cambió. Actualiza la página e inténtalo nuevamente.", "inventory_conflict");
+    this.name = "InventoryConflictError";
+  }
 }
 
 export async function updateInventory(
@@ -29,7 +33,7 @@ export async function updateInventory(
 ): Promise<void> {
   const edit = validateInventoryEdit(input);
   if (!Number.isSafeInteger(input.expectedOnHand) || input.expectedOnHand < 0) {
-    throw new Error("Existencia anterior inválida.");
+    throw new ValidationError("expected_on_hand_invalid", "Existencia anterior inválida.");
   }
   if (!actorUserId || !movementId) throw new Error("Se requiere autor y movimiento.");
   if (edit.onHand === input.expectedOnHand) return;

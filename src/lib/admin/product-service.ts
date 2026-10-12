@@ -1,3 +1,4 @@
+import { ConflictError, ValidationError } from "../observability/errors.ts";
 export type ProductType = "candle" | "wax_melt" | "kit" | "custom";
 export type ProductStatus = "draft" | "active" | "archived";
 
@@ -6,17 +7,17 @@ export function validateNewProduct(value: {
 }) {
   const name = value.name.trim();
   const description = value.description.trim();
-  if (name.length < 2 || name.length > 120) throw Error("Nombre inválido (2–120 caracteres)");
-  if (description.length > 2000) throw Error("Descripción demasiado extensa");
+  if (name.length < 2 || name.length > 120) throw new ValidationError("product_name_invalid", "Nombre inválido (2–120 caracteres)");
+  if (description.length > 2000) throw new ValidationError("product_description_invalid", "Descripción demasiado extensa");
   if (!["candle", "wax_melt", "kit", "custom"].includes(value.productType)) {
-    throw Error("Tipo de producto inválido");
+    throw new ValidationError("product_type_invalid", "Tipo de producto inválido");
   }
   return { name, description, productType: value.productType as ProductType };
 }
 
 export function validateStatus(value: unknown): ProductStatus {
   if (value !== "draft" && value !== "active" && value !== "archived") {
-    throw Error("Estado inválido");
+    throw new ValidationError("product_status_invalid", "Estado inválido");
   }
   return value;
 }
@@ -62,7 +63,12 @@ export async function createDraftProduct(
   return { id: productId, slug };
 }
 
-export class ProductConflictError extends Error {}
+export class ProductConflictError extends ConflictError {
+  constructor(message: string) {
+    super(message, "product_conflict");
+    this.name = "ProductConflictError";
+  }
+}
 
 export async function changeProductStatus(
   db: ProductDatabase, id: string, previous: ProductStatus, target: ProductStatus,

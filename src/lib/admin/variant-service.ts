@@ -1,3 +1,4 @@
+import { ValidationError } from "../observability/errors.ts";
 import { slugify, type ProductDatabase } from "./product-service.ts";
 
 export function makeSku(productSlug: string, aromaSlug?: string): string {
@@ -15,7 +16,7 @@ export async function createVariant(db: ProductDatabase & {
   label: string; actorId: string; variantId: string; auditId: string;
 }) {
   const label = args.label.trim();
-  if (label.length < 2 || label.length > 120 || !args.productId) throw Error("Presentación inválida");
+  if (label.length < 2 || label.length > 120 || !args.productId) throw new ValidationError("variant_label_invalid", "Presentación inválida");
   const sku = makeSku(args.productSlug, args.aromaName ?? undefined);
   const insert = db.prepare(`INSERT INTO store_variants
     (id,product_id,sku,label,aroma_id,status,price_cop,on_hand,reserved)

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAuthenticatedAdmin } from "@/lib/admin/server-auth";
 import { can } from "@/lib/admin/permissions";
+import { classifyError } from "@/lib/observability/errors";
+import { createLogger, describeError } from "@/lib/observability/logger";
 import { InventoryEditor } from "@/components/admin/inventory-editor";
 import { PriceEditor } from "@/components/admin/price-editor";
 import { AddVariant } from "@/components/admin/add-variant";
@@ -58,8 +60,13 @@ export default async function AdminHomePage({ searchParams }: {
     `).bind().all<AdminVariantRow>();
     rows = response.results.filter(row => showArchived ? row.product_status === "archived" : row.product_status !== "archived");
     aromas = (await database.prepare("SELECT id,name FROM store_aromas WHERE active=1 ORDER BY name COLLATE NOCASE").bind().all<{ id: string; name: string }>()).results;
-  } catch {
-    // Avoid revealing whether Access, provisioned identity or D1 is missing.
+  } catch (error) {
+    // Avoid revealing whether Access, provisioned identity or D1 is missing,
+    // but keep the real cause in Workers Logs.
+    const details = describeError(error);
+    const logger = createLogger({ operation: "admin.page.render" });
+    if (classifyError(error) === "auth") logger.warn("admin.page.denied", details);
+    else logger.error("admin.page.failed", details);
     notFound();
   }
 

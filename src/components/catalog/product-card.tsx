@@ -1,32 +1,18 @@
 import Image from "next/image";
 
-import { getVariantAvailability } from "@/lib/catalog/availability";
 import {
-  formatPriceCOP,
-  type CatalogProduct,
-  type ProductVariant,
-} from "@/types/catalog";
+  lowestOrderablePrice,
+  summarizeAvailability,
+  type PublicProduct,
+  type PublicVariant,
+} from "@/lib/catalog/public-catalog";
+import { formatPriceCOP } from "@/types/catalog";
 
 interface ProductCardProps {
-  product: CatalogProduct;
-  variants: ProductVariant[];
+  product: PublicProduct;
+  /** Solo la proyección pública: nunca cantidades de inventario. */
+  variants: PublicVariant[];
   categoryName?: string;
-}
-
-function getProductAvailability(variants: ProductVariant[]) {
-  const statuses = variants.map((variant) =>
-    getVariantAvailability(variant).status
-  );
-
-  if (statuses.includes("ready_to_ship")) {
-    return "Disponible";
-  }
-
-  if (statuses.includes("made_to_order")) {
-    return "Bajo pedido";
-  }
-
-  return "No disponible";
 }
 
 export function ProductCard({
@@ -38,24 +24,8 @@ export function ProductCard({
     (a, b) => a.sortOrder - b.sortOrder
   )[0];
 
-  const activeVariants = variants.filter(
-    (variant) => variant.status === "active"
-  );
-
-  const purchasableVariants = activeVariants.filter(
-    (variant) => getVariantAvailability(variant).purchasable
-  );
-
-  const prices = purchasableVariants.map(
-    (variant) => variant.price.amount
-  );
-
-  const lowestPrice =
-    prices.length > 0 ? Math.min(...prices) : null;
-
-  const availability = getProductAvailability(
-    activeVariants
-  );
+  const price = lowestOrderablePrice(variants);
+  const availability = summarizeAvailability(variants);
 
   return (
     <article className="overflow-hidden rounded-3xl border border-brand-black/10 bg-brand-white shadow-sm">
@@ -94,11 +64,11 @@ export function ProductCard({
 
         <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
           <p className="text-base font-bold text-brand-black">
-            {lowestPrice === null
+            {price === null
               ? "Precio no disponible"
-              : prices.length > 1
-                ? `Desde ${formatPriceCOP(lowestPrice)}`
-                : formatPriceCOP(lowestPrice)}
+              : price.hasRange
+                ? `Desde ${formatPriceCOP(price.amount)}`
+                : formatPriceCOP(price.amount)}
           </p>
 
           <span className="rounded-full bg-brand-cream px-3 py-1 text-xs font-bold text-brand-black">
