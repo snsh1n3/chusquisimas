@@ -43,11 +43,13 @@ export default async function AdminHomePage({ searchParams }: {
   let canEditInventory = false;
   let canManageProducts = false;
   let canEditPrices = false;
+  let canManageMedia = false;
   try {
     const { database, principal } = await requireAuthenticatedAdmin("catalog.read");
     canEditInventory = can(principal, "inventory.write");
     canEditPrices = can(principal, "catalog.write");
     canManageProducts = canEditPrices;
+    canManageMedia = can(principal, "media.write");
     const response = await database.prepare(`
       SELECT p.id AS product_id, p.name AS product_name, p.description AS product_description, p.product_type, p.status AS product_status,
         EXISTS(SELECT 1 FROM store_variants av WHERE av.product_id=p.id AND av.status='active' AND av.price_cop IS NOT NULL) AS product_ready,
@@ -104,7 +106,7 @@ export default async function AdminHomePage({ searchParams }: {
                   className="border-t border-[#EDE3D7] align-top">
                   <td className="p-4">
                     <strong>{row.product_name}</strong>
-                    {(index === 0 || rows[index - 1]?.product_id !== row.product_id) && canManageProducts && <ProductPhotoUpload productId={row.product_id} />}
+                    {(index === 0 || rows[index - 1]?.product_id !== row.product_id) && canManageMedia && <ProductPhotoUpload productId={row.product_id} />}
                     {(index === 0 || rows[index - 1]?.product_id !== row.product_id) && canManageProducts && <EditProduct id={row.product_id} initialName={row.product_name} initialDescription={row.product_description} initialType={row.product_type} status={row.product_status} />}
                     {index === 0 || rows[index - 1]?.product_id !== row.product_id ? (
                       canManageProducts ? <ProductVisibility id={row.product_id} status={row.product_status} canPublish={row.product_ready === 1} /> : <div className="text-xs">{row.product_status}</div>

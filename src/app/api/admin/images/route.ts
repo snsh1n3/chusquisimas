@@ -26,7 +26,8 @@ export const POST = withApiLogging("admin.images.upload", async (request: NextRe
   let bucket: R2Bucket | undefined;
   let productIdForLog: string | undefined;
   try {
-    const { principal } = await requireAuthenticatedAdmin("catalog.write");
+    // Fotografías tienen su propio permiso (roles Administrador y Gestor en D1).
+    const { principal } = await requireAuthenticatedAdmin("media.write");
     const { env } = await getCloudflareContext({ async: true });
     const bindings = env as typeof env & Bindings;
     const { DB: db, IMAGES: images } = bindings;

@@ -15,6 +15,7 @@ Cloudflare Workers Logs indexa automáticamente (`observability.enabled: true` e
 | `admin.page.denied` / `admin.page.failed` | warn / error | El panel respondió 404 por acceso denegado o por un fallo real |
 | `store.catalog_unavailable` | error | La tienda no pudo leer D1 y mostró el estado de error |
 | `public.image.missing_object` | warn | D1 referencia una fotografía que no existe en R2 |
+| `csp.violation` | warn | El navegador reportó algo que la CSP (Report-Only) habría bloqueado: `directive`, `blocked`, `documentPath` |
 
 Todos los eventos de una solicitud comparten `requestId` (el `cf-ray` de
 Cloudflare cuando existe). Las respuestas incluyen la cabecera `X-Request-Id` y
@@ -46,3 +47,4 @@ correo.
 - Accesos denegados al panel: `errorCategory = auth`
 - Solicitudes lentas: `event = api.request` y `durationMs > 1000`
 - Seguir una solicitud: `requestId = <valor de X-Request-Id>`
+- Revisar la CSP antes de activarla: `event = csp.violation`, agrupando por `directive` y `blocked`
