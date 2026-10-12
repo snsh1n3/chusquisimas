@@ -34,6 +34,69 @@ function normalizeTeamDomain(raw: string): string {
   return trimmed;
 }
 
+type AccessJwk = JsonWebKey & { kid?: string; alg?: string; use?: string };
+
+interface JwksCacheEntry {
+  keys: AccessJwk[];
+  fetchedAt: number;
+}
+
+/** Las claves de Access rotan con poca frecuencia; 5 minutos evita una consulta por solicitud. */
+export const JWKS_TTL_MS = 5 * 60_000;
+/**
+ * Ante un `kid` desconocido se refresca de inmediato (rotación), pero como
+ * mucho una vez cada 30 s: un atacante no puede forzar una consulta al JWKS
+ * por cada token inventado.
+ */
+export const JWKS_MIN_REFRESH_MS = 30_000;
+
+/**
+ * Caché por instancia del Worker, separada por función de fetch para que las
+ * pruebas con fetch simulados no compartan estado con producción.
+ * Solo almacena claves públicas: la autorización se sigue validando en D1.
+ */
+const jwksCaches = new WeakMap<typeof fetch, Map<string, JwksCacheEntry>>();
+
+let clock: () => number = () => Date.now();
+
+/** Solo para pruebas: controla el reloj de la caché. */
+export function setJwksClockForTests(next: (() => number) | null): void {
+  clock = next ?? (() => Date.now());
+}
+
+function findSigningKey(keys: AccessJwk[], kid: string): AccessJwk | undefined {
+  return keys.find((item) => item.kid === kid &&
+    item.kty === "RSA" && item.alg === "RS256" && item.use === "sig");
+}
+
+async function fetchKeys(domain: string, fetchJwks: typeof fetch): Promise<AccessJwk[]> {
+  const response = await fetchJwks(`https://${domain}/cdn-cgi/access/certs`, { cache: "no-store" });
+  if (!response.ok) throw new Error("No se pudieron consultar las claves de Access");
+  const jwks = await response.json() as { keys?: AccessJwk[] };
+  return Array.isArray(jwks.keys) ? jwks.keys : [];
+}
+
+async function getSigningKey(domain: string, kid: string, fetchJwks: typeof fetch): Promise<AccessJwk> {
+  let cache = jwksCaches.get(fetchJwks);
+  if (!cache) {
+    cache = new Map();
+    jwksCaches.set(fetchJwks, cache);
+  }
+  const now = clock();
+  const entry = cache.get(domain);
+  const fresh = entry !== undefined && now - entry.fetchedAt < JWKS_TTL_MS;
+  if (entry && fresh) {
+    const cached = findSigningKey(entry.keys, kid);
+    if (cached) return cached;
+    if (now - entry.fetchedAt < JWKS_MIN_REFRESH_MS) throw new Error("Clave Access desconocida");
+  }
+  const keys = await fetchKeys(domain, fetchJwks);
+  cache.set(domain, { keys, fetchedAt: now });
+  const key = findSigningKey(keys, kid);
+  if (!key) throw new Error("Clave Access desconocida");
+  return key;
+}
+
 export async function verifyAccessToken(
   token: string | null | undefined,
   configuration: AccessVerificationConfig,
@@ -62,13 +125,7 @@ export async function verifyAccessToken(
       typeof claims.email !== "string" || !claims.email.includes("@")) {
     throw new Error("Identidad de Access no válida");
   }
-  const url = `${expectedIssuer}/cdn-cgi/access/certs`;
-  const response = await fetchJwks(url, { cache: "no-store" });
-  if (!response.ok) throw new Error("No se pudieron consultar las claves de Access");
-  const jwks = await response.json() as { keys?: Array<JsonWebKey & { kid?: string; alg?: string; use?: string }> };
-  const key = jwks.keys?.find((item) => item.kid === header.kid &&
-    item.kty === "RSA" && item.alg === "RS256" && item.use === "sig");
-  if (!key) throw new Error("Clave Access desconocida");
+  const key = await getSigningKey(domain, header.kid, fetchJwks);
   const cryptoKey = await crypto.subtle.importKey("jwk", key, {
     name: "RSASSA-PKCS1-v1_5", hash: "SHA-256",
   }, false, ["verify"]);

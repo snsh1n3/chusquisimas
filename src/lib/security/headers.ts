@@ -30,15 +30,20 @@ export interface HeaderRule {
 
 type CspDirectives = Record<string, readonly string[]>;
 
+export const CLOUDFLARE_INSIGHTS_SCRIPT = "https://static.cloudflareinsights.com";
+export const CLOUDFLARE_INSIGHTS_CONNECT = "https://cloudflareinsights.com";
+
 const BASE_CSP: CspDirectives = {
   "default-src": ["'self'"],
   // Next.js inyecta scripts inline para hidratación; sin nonces todavía.
-  "script-src": ["'self'", "'unsafe-inline'"],
+  // Cloudflare Web Analytics inyecta su beacon en la zona (reporte del 12-oct-2026).
+  "script-src": ["'self'", "'unsafe-inline'", CLOUDFLARE_INSIGHTS_SCRIPT],
   "style-src": ["'self'", "'unsafe-inline'"],
   "img-src": ["'self'", "data:", "blob:"],
   // Quicksand se sirve desde el propio dominio con next/font.
   "font-src": ["'self'"],
-  "connect-src": ["'self'"],
+  // El beacon envía las métricas de Web Analytics a este origen.
+  "connect-src": ["'self'", CLOUDFLARE_INSIGHTS_CONNECT],
   "object-src": ["'none'"],
   "base-uri": ["'self'"],
   "form-action": ["'self'"],

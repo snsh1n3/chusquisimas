@@ -52,3 +52,27 @@ siguiente solicitud.
 
 Las fotografías usan `media.write` (Administrador y Gestor) en lugar de
 `catalog.write`.
+
+## Cachés
+
+### Claves de Access (JWKS)
+
+`access-jwt.ts` guarda las claves públicas de Access 5 minutos por instancia del
+Worker. Ante un `kid` desconocido (rotación) refresca de inmediato, pero como
+máximo una vez cada 30 s, para que tokens inventados no generen consultas. La
+autorización (usuario activo, roles y permisos) se sigue leyendo de D1 en cada
+solicitud: revocar a alguien en D1 tiene efecto inmediato.
+
+### Fotografías públicas
+
+Cada carga crea un id nuevo y el archivo nunca se sobrescribe, así que el id
+funciona como versión.
+
+- D1 se consulta siempre: si el producto deja de estar publicado, la foto
+  responde 404 en la siguiente solicitud que llegue al Worker.
+- Navegador: `max-age=300` y `ETag` por id (304 sin volver a descargar).
+- Worker: Cache API por 1 día para el contenido, para no leer R2 en cada visita.
+- `X-Edge-Cache: HIT | MISS | BYPASS` indica de dónde salió la imagen.
+
+Cuando se implemente eliminar fotografías, además de borrar el objeto de R2 hay
+que eliminar su entrada de `edgeCacheKey()` en la Cache API.

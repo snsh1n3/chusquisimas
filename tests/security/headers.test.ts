@@ -67,3 +67,15 @@ describe("buildCsp", () => {
     assert.match(csp, /default-src 'self'/);
   });
 });
+
+describe("orígenes externos permitidos", () => {
+  const csp = buildCsp({ frameAncestors: "'self'" });
+
+  it("permite solo el beacon de Cloudflare Web Analytics", () => {
+    assert.match(csp, /script-src 'self' 'unsafe-inline' https:\/\/static\.cloudflareinsights\.com;/);
+    assert.match(csp, /connect-src 'self' https:\/\/cloudflareinsights\.com;/);
+    const external = csp.match(/https:\/\/[^\s;]+/g) ?? [];
+    assert.deepEqual([...new Set(external)].sort(),
+      ["https://cloudflareinsights.com", "https://static.cloudflareinsights.com"]);
+  });
+});
