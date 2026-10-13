@@ -17,7 +17,7 @@ const FULL_WIDTH = 1400;
 const THUMB_WIDTH = 480;
 
 /** Re-encode on Cloudflare Images: never store the user's original bytes. */
-async function encodeWebp(images: ImagesBinding, bytes: Uint8Array, width: number, quality: number) {
+async function encodeWebp(images: ImagesBinding, bytes: Uint8Array<ArrayBuffer>, width: number, quality: number) {
   try {
     const converted = (await images.input(new Blob([bytes]).stream())
       .transform({ width, fit: "scale-down" })
