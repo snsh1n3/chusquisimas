@@ -13,6 +13,8 @@
  * - ETag fijo por id: un navegador con la foto recibe 304 sin descargarla.
  */
 
+export type ImageSize = "full" | "thumb";
+
 export const BROWSER_MAX_AGE_SECONDS = 300;
 export const EDGE_MAX_AGE_SECONDS = 86_400;
 
@@ -25,8 +27,13 @@ export function isImageId(value: string): boolean {
   return IMAGE_ID_PATTERN.test(value);
 }
 
-export function imageEtag(imageId: string): string {
-  return `"img-${imageId.toLowerCase()}"`;
+export function imageEtag(imageId: string, size: ImageSize = "full"): string {
+  return `"img-${imageId.toLowerCase()}${size === "thumb" ? "-thumb" : ""}"`;
+}
+
+/** Rutas públicas de una foto (principal y miniatura). */
+export function publicImagePaths(imageId: string): { src: string; thumbSrc: string } {
+  return { src: `/api/images/${imageId}`, thumbSrc: `/api/images/${imageId}/thumb` };
 }
 
 /** Evalúa If-None-Match (lista separada por comas, admite W/ y *). */
@@ -39,15 +46,15 @@ export function matchesEtag(ifNoneMatch: string | null, etag: string): boolean {
 }
 
 /** Clave interna de la Cache API; no es una URL pública ni enrutable. */
-export function edgeCacheKey(origin: string, imageId: string): string {
-  return `${origin}/__edge-cache/product-images/${imageId.toLowerCase()}`;
+export function edgeCacheKey(origin: string, imageId: string, size: ImageSize = "full"): string {
+  return `${origin}/__edge-cache/product-images/${imageId.toLowerCase()}/${size}`;
 }
 
-export function publicImageHeaders(imageId: string): Record<string, string> {
+export function publicImageHeaders(imageId: string, size: ImageSize = "full"): Record<string, string> & { ETag: string } {
   return {
     "Content-Type": "image/webp",
     "X-Content-Type-Options": "nosniff",
     "Cache-Control": PUBLIC_IMAGE_CACHE_CONTROL,
-    ETag: imageEtag(imageId),
+    ETag: imageEtag(imageId, size),
   };
 }

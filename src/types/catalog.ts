@@ -34,6 +34,8 @@ export interface CatalogCategory {
 export interface CatalogProductImage {
   id: CatalogId;
   src: string;
+  /** Versión reducida (480 px) para tarjetas y galerías. */
+  thumbSrc?: string;
   alt: string;
   sortOrder: number;
 }
@@ -102,6 +104,8 @@ export interface ProductVariant {
   id: CatalogId;
   productId: CatalogId;
   sku: string;
+  /** Nombre visible de la presentación (p. ej. "Café" o "Combo x3"). */
+  label?: string;
   optionSelections: VariantOptionSelection[];
   price: MoneyCOP;
   status: VariantStatus;

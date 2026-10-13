@@ -74,5 +74,15 @@ funciona como versión.
 - Worker: Cache API por 1 día para el contenido, para no leer R2 en cada visita.
 - `X-Edge-Cache: HIT | MISS | BYPASS` indica de dónde salió la imagen.
 
-Cuando se implemente eliminar fotografías, además de borrar el objeto de R2 hay
-que eliminar su entrada de `edgeCacheKey()` en la Cache API.
+Al eliminar una fotografía se borra primero la fila de D1 (deja de servirse en
+la siguiente solicitud) y luego los objetos de R2. Las copias que queden en la
+Cache API de cada centro de datos no se pueden leer, porque D1 se consulta antes
+de la caché, y expiran solas en un día.
+
+### Variantes de cada fotografía
+
+| Ruta | Archivo en R2 | Uso |
+|---|---|---|
+| `/api/images/<id>` | `products/<producto>/<id>.webp` (1400 px) | Página de producto |
+| `/api/images/<id>/thumb` | `products/<producto>/<id>-thumb.webp` (480 px) | Tarjetas y miniaturas |
+| `/api/admin/images/<id>` | miniatura (o la principal) | Panel, también para productos sin publicar; exige Access y `catalog.read` |

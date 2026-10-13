@@ -23,6 +23,8 @@ export type PublicAvailability = "ready_to_ship" | "made_to_order" | "out_of_sto
 export interface PublicVariant {
   id: CatalogId;
   productId: CatalogId;
+  /** Nombre visible de la presentación o aroma. */
+  label: string;
   price: MoneyCOP;
   availability: PublicAvailability;
   /** Solo presente cuando la variante se fabrica bajo pedido. */
@@ -52,6 +54,7 @@ export function toPublicVariant(variant: ProductVariant): PublicVariant | null {
   const publicVariant: PublicVariant = {
     id: variant.id,
     productId: variant.productId,
+    label: variant.label?.trim() || "Presentación única",
     price: { currency: variant.price.currency, amount: variant.price.amount },
     availability: availability.status,
   };
@@ -68,9 +71,12 @@ export function toPublicProduct(product: CatalogProduct): PublicProduct {
     name: product.name,
     description: product.description,
     categoryIds: [...product.categoryIds],
-    images: product.images.map((image) => ({
-      id: image.id, src: image.src, alt: image.alt, sortOrder: image.sortOrder,
-    })),
+    images: [...product.images]
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((image) => ({
+        id: image.id, src: image.src, thumbSrc: image.thumbSrc ?? image.src,
+        alt: image.alt, sortOrder: image.sortOrder,
+      })),
     featured: product.featured,
   };
 }

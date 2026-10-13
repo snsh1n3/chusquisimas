@@ -52,7 +52,7 @@ describe("toPublicVariant", () => {
   it("marca entrega inmediata con existencias y no expone cantidades", () => {
     const result = toPublicVariant(variant("a", [stock(7, 2), madeToOrder]));
     assert.deepEqual(result, {
-      id: "a", productId: "p-1",
+      id: "a", productId: "p-1", label: "Presentación única",
       price: { currency: "COP", amount: 42000 },
       availability: "ready_to_ship",
     });
@@ -93,7 +93,7 @@ describe("toPublicCatalog", () => {
     assert.deepEqual(products[0], {
       id: "p-1", slug: "titina", name: "Titina", description: "Hongo con tapa",
       categoryIds: ["velas"],
-      images: [{ id: "img-1", src: "/api/images/img-1", alt: "Titina", sortOrder: 0 }],
+      images: [{ id: "img-1", src: "/api/images/img-1", thumbSrc: "/api/images/img-1", alt: "Titina", sortOrder: 0 }],
       featured: false,
     });
   });
@@ -101,7 +101,7 @@ describe("toPublicCatalog", () => {
 
 describe("resúmenes para la tarjeta", () => {
   const pv = (availability: PublicVariant["availability"], amount: number): PublicVariant => ({
-    id: `${availability}-${amount}`, productId: "p-1",
+    id: `${availability}-${amount}`, productId: "p-1", label: "x",
     price: { currency: "COP", amount }, availability,
   });
 
@@ -118,5 +118,20 @@ describe("resúmenes para la tarjeta", () => {
     assert.deepEqual(lowestOrderablePrice([pv("ready_to_ship", 40000), pv("made_to_order", 40000)]),
       { amount: 40000, hasRange: false });
     assert.equal(lowestOrderablePrice([pv("out_of_stock", 10000)]), null);
+  });
+});
+
+describe("etiquetas e imágenes públicas", () => {
+  it("usa la etiqueta de la variante y ordena las fotos por sort_order", () => {
+    const catalog = toPublicCatalog({
+      products: [{ ...product, images: [
+        { id: "b", src: "/b", thumbSrc: "/b/t", alt: "B", sortOrder: 1 },
+        { id: "a", src: "/a", thumbSrc: "/a/t", alt: "A", sortOrder: 0 },
+      ] }],
+      variants: [variant("v", [stock(1)], { label: "  Café  " })],
+    });
+    assert.equal(catalog.variants[0].label, "Café");
+    assert.deepEqual(catalog.products[0].images.map((i) => i.id), ["a", "b"]);
+    assert.equal(catalog.products[0].images[0].thumbSrc, "/a/t");
   });
 });

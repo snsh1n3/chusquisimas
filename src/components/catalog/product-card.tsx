@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import {
   lowestOrderablePrice,
@@ -28,11 +29,12 @@ export function ProductCard({
   const availability = summarizeAvailability(variants);
 
   return (
-    <article className="overflow-hidden rounded-3xl border border-brand-black/10 bg-brand-white shadow-sm">
+    <article className="group relative overflow-hidden rounded-3xl border border-brand-black/10 bg-brand-white shadow-sm transition hover:shadow-md">
       <div className="relative flex aspect-square items-center justify-center bg-brand-cream">
         {mainImage ? (
           <Image
-            src={mainImage.src}
+            src={mainImage.thumbSrc ?? mainImage.src}
+            unoptimized
             alt={mainImage.alt}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -55,7 +57,11 @@ export function ProductCard({
         )}
 
         <h2 className="text-xl font-bold text-brand-black">
-          {product.name}
+          {/* El enlace cubre toda la tarjeta con ::after, sin anidar elementos interactivos. */}
+          <Link href={`/tienda/${product.slug}`}
+            className="after:absolute after:inset-0 after:content-[''] focus-visible:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-orange">
+            {product.name}
+          </Link>
         </h2>
 
         <p className="line-clamp-2 text-sm leading-6 text-brand-black/65">

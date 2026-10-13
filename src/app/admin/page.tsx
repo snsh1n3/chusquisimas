@@ -9,6 +9,7 @@ import { InventoryEditor } from "@/components/admin/inventory-editor";
 import { PriceEditor } from "@/components/admin/price-editor";
 import { AddVariant } from "@/components/admin/add-variant";
 import { ProductPhotoUpload } from "@/components/admin/product-photo-upload";
+import { ProductPhotoManager, type AdminProductImage } from "@/components/admin/product-photo-manager";
 import { CreateProductForm, ProductVisibility, VariantVisibility, EditProduct } from "@/components/admin/product-manager";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +41,7 @@ export default async function AdminHomePage({ searchParams }: {
   const showArchived = (await searchParams).archived === "1";
   let rows: AdminVariantRow[] = [];
   let aromas: { id: string; name: string }[] = [];
+  const imagesByProduct = new Map<string, AdminProductImage[]>();
   let canEditInventory = false;
   let canManageProducts = false;
   let canEditPrices = false;
@@ -62,6 +64,14 @@ export default async function AdminHomePage({ searchParams }: {
     `).bind().all<AdminVariantRow>();
     rows = response.results.filter(row => showArchived ? row.product_status === "archived" : row.product_status !== "archived");
     aromas = (await database.prepare("SELECT id,name FROM store_aromas WHERE active=1 ORDER BY name COLLATE NOCASE").bind().all<{ id: string; name: string }>()).results;
+    const imageRows = (await database.prepare(
+      "SELECT id, product_id, alt_text FROM store_product_images ORDER BY product_id, sort_order, id"
+    ).bind().all<{ id: string; product_id: string; alt_text: string }>()).results;
+    for (const image of imageRows) {
+      const list = imagesByProduct.get(image.product_id) ?? [];
+      list.push({ id: image.id.toLowerCase(), alt: image.alt_text });
+      imagesByProduct.set(image.product_id, list);
+    }
   } catch (error) {
     // Avoid revealing whether Access, provisioned identity or D1 is missing,
     // but keep the real cause in Workers Logs.
@@ -106,7 +116,10 @@ export default async function AdminHomePage({ searchParams }: {
                   className="border-t border-[#EDE3D7] align-top">
                   <td className="p-4">
                     <strong>{row.product_name}</strong>
-                    {(index === 0 || rows[index - 1]?.product_id !== row.product_id) && canManageMedia && <ProductPhotoUpload productId={row.product_id} />}
+                    {(index === 0 || rows[index - 1]?.product_id !== row.product_id) && canManageMedia && <>
+                      <ProductPhotoManager images={imagesByProduct.get(row.product_id) ?? []} />
+                      <ProductPhotoUpload productId={row.product_id} />
+                    </>}
                     {(index === 0 || rows[index - 1]?.product_id !== row.product_id) && canManageProducts && <EditProduct id={row.product_id} initialName={row.product_name} initialDescription={row.product_description} initialType={row.product_type} status={row.product_status} />}
                     {index === 0 || rows[index - 1]?.product_id !== row.product_id ? (
                       canManageProducts ? <ProductVisibility id={row.product_id} status={row.product_status} canPublish={row.product_ready === 1} /> : <div className="text-xs">{row.product_status}</div>

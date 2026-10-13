@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import {
   BROWSER_MAX_AGE_SECONDS, edgeCacheKey, imageEtag, isImageId, matchesEtag, publicImageHeaders,
+  publicImagePaths,
 } from "../../src/lib/catalog/image-delivery.ts";
 
 const id = "3f2b8c1e-9a4d-4e6f-8b2a-1c3d5e7f9a0b";
@@ -36,6 +37,12 @@ describe("image delivery policy", () => {
 
   it("la clave de caché interna no depende de la query ni del caso", () => {
     assert.equal(edgeCacheKey("https://chusquisimas.com", id.toUpperCase()),
-      `https://chusquisimas.com/__edge-cache/product-images/${id}`);
+      `https://chusquisimas.com/__edge-cache/product-images/${id}/full`);
+    assert.notEqual(edgeCacheKey("https://x", id, "thumb"), edgeCacheKey("https://x", id, "full"));
+  });
+
+  it("principal y miniatura tienen ETag y rutas distintas", () => {
+    assert.notEqual(imageEtag(id, "thumb"), imageEtag(id, "full"));
+    assert.deepEqual(publicImagePaths(id), { src: `/api/images/${id}`, thumbSrc: `/api/images/${id}/thumb` });
   });
 });
