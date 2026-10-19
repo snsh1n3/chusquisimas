@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Quicksand } from "next/font/google";
 import "./globals.css";
+import { OPEN_GRAPH_DEFAULTS, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -9,13 +10,16 @@ const quicksand = Quicksand({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Chusquisimas | Crea ambiente, enciende tu chusquisima",
-    template: "%s | Chusquisimas",
+    default: `${SITE_NAME} | Velas artesanales y wax melts`,
+    template: `%s | ${SITE_NAME}`,
   },
-  description:
-    "Velas aromaticas, wax melts y detalles artesanales para llenar tus espacios de personalidad.",
-  applicationName: "Chusquisimas",
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  openGraph: { ...OPEN_GRAPH_DEFAULTS },
+  twitter: { card: "summary" },
+  formatDetection: { telephone: false },
 };
 
 export default function RootLayout({

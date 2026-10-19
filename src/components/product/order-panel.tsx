@@ -39,6 +39,7 @@ export function OrderPanel({ productName, variants }: { productName: string; var
         <a href={inquiryUrl} target="_blank" rel="noopener noreferrer"
           className="mt-4 inline-block rounded-full bg-inverse px-6 py-3 text-sm font-bold text-on-inverse">
           Consultar por WhatsApp
+          <span className="sr-only"> (se abre WhatsApp)</span>
         </a>
       </div>
     );
@@ -55,12 +56,13 @@ export function OrderPanel({ productName, variants }: { productName: string; var
               const orderable = isOrderable(variant);
               return (
                 <label key={variant.id}
-                  className={`cursor-pointer rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                  className={`cursor-pointer rounded-full border px-4 py-2 text-sm font-semibold transition has-[input:focus-visible]:outline-3 has-[input:focus-visible]:outline-offset-3 has-[input:focus-visible]:outline-focus ${
                     active ? "border-line-strong bg-inverse text-on-inverse" : "border-line-control hover:border-line-strong"
                   } ${orderable ? "" : "opacity-50"}`}>
                   <input type="radio" name="variant" value={variant.id} checked={active}
                     onChange={() => setSelectedId(variant.id)} className="sr-only" />
                   {variant.label}
+                  {!orderable && <span className="font-medium"> · Agotado</span>}
                 </label>
               );
             })}
@@ -99,6 +101,7 @@ export function OrderPanel({ productName, variants }: { productName: string; var
             <a href={orderUrl} target="_blank" rel="noopener noreferrer"
               className="rounded-full bg-action px-6 py-4 text-center text-base font-bold text-on-action transition hover:bg-action-hover hover:text-on-action-hover">
               Pedir por WhatsApp
+              <span className="sr-only"> (se abre WhatsApp)</span>
             </a>
           )}
           <p className="text-xs leading-5 text-fg-muted">
@@ -110,6 +113,7 @@ export function OrderPanel({ productName, variants }: { productName: string; var
         <a href={inquiryUrl} target="_blank" rel="noopener noreferrer"
           className="rounded-full border border-line-strong px-6 py-4 text-center font-bold">
           Avísame cuando esté disponible
+          <span className="sr-only"> (se abre WhatsApp)</span>
         </a>
       )}
     </div>

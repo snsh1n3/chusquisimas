@@ -3,13 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 
-import { SiteHeader } from "@/components/layout/site-header";
+import { PublicShell } from "@/components/layout/public-shell";
 import { OrderPanel } from "@/components/product/order-panel";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { getCatalogCategories } from "@/data/catalog";
 import { getPublicProductBySlug } from "@/lib/catalog/d1-published";
 import { buildProductJsonLd, productDescription, SITE_URL } from "@/lib/catalog/product-seo";
 import { createLogger, describeError } from "@/lib/observability/logger";
+import { OPEN_GRAPH_DEFAULTS } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -44,9 +45,9 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   return {
     title: product.name,
     description,
-    alternates: { canonical: `${SITE_URL}/tienda/${product.slug}` },
+    alternates: { canonical: `/tienda/${product.slug}` },
     openGraph: {
-      type: "website",
+      ...OPEN_GRAPH_DEFAULTS,
       title: `${product.name} | Chusquisimas`,
       description,
       url: `${SITE_URL}/tienda/${product.slug}`,
@@ -62,8 +63,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   if (result.state === "error") {
     return (
-      <main className="min-h-screen bg-page text-fg">
-        <SiteHeader />
+      <PublicShell>
         <section className="mx-auto max-w-2xl px-5 py-20 text-center">
           <h1 className="text-2xl font-bold">No pudimos cargar este producto.</h1>
           <p className="mt-3 text-fg-muted">
@@ -71,7 +71,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </p>
           <Link href="/tienda" className="mt-6 inline-block font-bold underline">Volver a la tienda</Link>
         </section>
-      </main>
+      </PublicShell>
     );
   }
 
@@ -80,8 +80,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const jsonLd = buildProductJsonLd(product, variants);
 
   return (
-    <main className="min-h-screen bg-page text-fg">
-      <SiteHeader />
+    <PublicShell>
       <script
         type="application/ld+json"
         // JSON-LD con "<" escapado: no puede cerrar la etiqueta script.
@@ -129,6 +128,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </div>
       </section>
-    </main>
+    </PublicShell>
   );
 }

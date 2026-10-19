@@ -2,17 +2,36 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 const navigation = [
-  { label: "Inicio", href: "/#inicio" },
+  { label: "Inicio", href: "/" },
   { label: "Colecciones", href: "/#colecciones" },
   { label: "Tienda", href: "/tienda" },
   { label: "Nuestra esencia", href: "/#nuestra-esencia" },
 ];
 
 export function SiteHeader() {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+  // El menú queda abierto solo para la ruta en la que se abrió: al navegar se cierra solo.
+  const [openFor, setOpenFor] = useState<string | null>(null);
+  const menuOpen = openFor === pathname;
+  const setMenuOpen = (open: boolean) => setOpenFor(open ? pathname : null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+
+  // Escape cierra el menú y devuelve el foco al botón que lo abrió.
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpenFor(null);
+        toggleRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [menuOpen]);
 
   return (
     <header className="relative z-50 border-b border-line bg-surface">
@@ -37,13 +56,14 @@ export function SiteHeader() {
         </Link>
 
         <nav
-          aria-label="Navegacion principal"
+          aria-label="Navegación principal"
           className="hidden items-center gap-7 lg:flex"
         >
           {navigation.map((item) => (
             <Link
               key={item.href}
               href={item.href}
+              aria-current={item.href === pathname ? "page" : undefined}
               className="text-sm font-bold transition-colors hover:text-fg-accent"
             >
               {item.label}
@@ -55,7 +75,7 @@ export function SiteHeader() {
           href="/tienda"
           className="hidden rounded-full bg-action px-5 py-3 text-sm font-bold text-on-action transition-colors hover:bg-action-hover hover:text-on-action-hover sm:inline-flex"
         >
-          Explorar
+          Ver la tienda
         </Link>
 
         <div className="flex items-center gap-2 lg:hidden">
@@ -67,8 +87,9 @@ export function SiteHeader() {
           </Link>
 
         <button
+          ref={toggleRef}
           type="button"
-          aria-label={menuOpen ? "Cerrar menu" : "Abrir menu"}
+          aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
           aria-expanded={menuOpen}
           aria-controls="mobile-navigation"
           onClick={() => setMenuOpen(!menuOpen)}
@@ -84,7 +105,7 @@ export function SiteHeader() {
       {menuOpen && (
         <nav
           id="mobile-navigation"
-          aria-label="Navegacion movil"
+          aria-label="Navegación móvil"
           className="border-t border-line bg-surface px-5 py-4 lg:hidden"
         >
           <div className="mx-auto flex max-w-7xl flex-col gap-2">
@@ -92,6 +113,7 @@ export function SiteHeader() {
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={item.href === pathname ? "page" : undefined}
                 onClick={() => setMenuOpen(false)}
                 className="rounded-xl px-4 py-3 text-base font-bold hover:bg-page"
               >

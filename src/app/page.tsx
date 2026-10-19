@@ -1,5 +1,12 @@
-import { SiteHeader } from "@/components/layout/site-header";
+import { PublicShell } from "@/components/layout/public-shell";
+import type { Metadata } from "next";
+
 import { Hero } from "@/components/home/hero";
+import { buildOrganizationJsonLd } from "@/lib/catalog/product-seo";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const categories = [
   {
@@ -27,8 +34,12 @@ const categories = [
 
 export default function Home() {
   return (
-    <main id="inicio" className="min-h-screen bg-page text-fg">
-      <SiteHeader />
+    <PublicShell>
+      <script
+        type="application/ld+json"
+        // JSON-LD con "<" escapado: no puede cerrar la etiqueta script.
+        dangerouslySetInnerHTML={{ __html: buildOrganizationJsonLd() }}
+      />
       <Hero />
 
       <section
@@ -89,14 +100,6 @@ export default function Home() {
           </p>
         </div>
       </section>
-
-      <footer className="bg-inverse px-5 py-8 text-on-inverse md:px-10">
-        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-3 text-sm md:flex-row">
-          <span className="font-bold">Chusquisimas</span>
-          <span>Crea ambiente, enciende tu chusquísima.</span>
-          <span>Vista preliminar V2 · No publicada</span>
-        </div>
-      </footer>
-    </main>
+    </PublicShell>
   );
 }

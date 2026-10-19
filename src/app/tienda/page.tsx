@@ -1,23 +1,34 @@
 import Link from "next/link";
 import { ProductCard } from "@/components/catalog/product-card";
-import { SiteHeader } from "@/components/layout/site-header";
+import { PublicShell } from "@/components/layout/public-shell";
 import type { Metadata } from "next";
 
 import { getCatalogCategories } from "@/data/catalog";
 import { getPublicCatalog } from "@/lib/catalog/d1-published";
 import type { PublicCatalog } from "@/lib/catalog/public-catalog";
 import { createLogger, describeError } from "@/lib/observability/logger";
+import { OPEN_GRAPH_DEFAULTS, SITE_NAME } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Tienda | Chusquisimas",
-  description:
-    "Descubre velas aromáticas, wax melts y creaciones personalizadas de Chusquisimas.",
-};
-
 interface StorePageProps {
   searchParams: Promise<{ categoria?: string }>;
+}
+
+export async function generateMetadata({ searchParams }: StorePageProps): Promise<Metadata> {
+  const { categoria } = await searchParams;
+  const category = getCatalogCategories().find((item) => item.slug === categoria);
+  // Un filtro inválido apunta a la tienda completa para no indexar variantes vacías.
+  const path = category ? `/tienda?categoria=${encodeURIComponent(category.slug)}` : "/tienda";
+  const title = category ? `${category.name} | Tienda` : "Tienda";
+  const description = category?.description ??
+    "Velas aromáticas, wax melts y kits hechos a mano con cera de soya y envase de cemento.";
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: { ...OPEN_GRAPH_DEFAULTS, title: `${title} | ${SITE_NAME}`, description, url: path },
+  };
 }
 
 export default async function StorePage({
@@ -44,8 +55,7 @@ export default async function StorePage({
     : allProducts;
 
   return (
-    <main className="min-h-screen bg-page text-fg">
-      <SiteHeader />
+    <PublicShell>
 
       <section className="mx-auto max-w-6xl px-5 pb-14 pt-10 sm:px-8 sm:pt-16">
         <div className="mx-auto max-w-2xl text-center">
@@ -154,6 +164,6 @@ export default async function StorePage({
           )}
         </div>
       </section>
-    </main>
+    </PublicShell>
   );
 }

@@ -4,7 +4,9 @@
  */
 import type { PublicProduct, PublicVariant } from "./public-catalog.ts";
 
-export const SITE_URL = "https://chusquisimas.com";
+import { INSTAGRAM_URL, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "../site.ts";
+
+export { SITE_URL };
 const MAX_DESCRIPTION = 155;
 
 export function productDescription(product: Pick<PublicProduct, "name" | "description">): string {
@@ -31,7 +33,7 @@ export function buildProductJsonLd(product: PublicProduct, variants: readonly Pu
     name: product.name,
     description: productDescription(product),
     url,
-    brand: { "@type": "Brand", name: "Chusquisimas" },
+    brand: { "@type": "Brand", name: SITE_NAME },
     image: product.images.map((image) => `${SITE_URL}${image.src}`),
   };
   if (prices.length > 0 && best) {
@@ -46,4 +48,17 @@ export function buildProductJsonLd(product: PublicProduct, variants: readonly Pu
     };
   }
   return JSON.stringify(data).replace(/</g, "\\u003c");
+}
+
+/** Organization para la página de inicio: nombre, sitio, logo y perfiles oficiales. */
+export function buildOrganizationJsonLd(): string {
+  return JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: SITE_NAME,
+    url: SITE_URL,
+    logo: `${SITE_URL}/brand/chusquisimas-logo.svg`,
+    description: SITE_DESCRIPTION,
+    sameAs: [INSTAGRAM_URL],
+  }).replace(/</g, "\\u003c");
 }
