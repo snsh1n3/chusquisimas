@@ -34,6 +34,10 @@ Revisión de accesibilidad y SEO técnico sobre el código y la página en produ
 | Tarea larga de 88 ms (hidratación) | Aceptable; sin acción |
 | Tamaño del DOM (96 elementos) | Bien |
 
+### Línea base antes del rediseño
+
+Después de `inlineCss` (commit `fd5a533`): **Performance 100 en móvil y 100 en escritorio** (Lighthouse, inicio). Cualquier cambio del rediseño debe mantenerse en ese rango; si baja, revisar primero imágenes del hero, fuentes nuevas y efectos con canvas o shaders.
+
 ## Pendiente
 
 - Imagen Open Graph de 1200×630 (PNG o JPG) para inicio y tienda: la diseña el rediseño.
