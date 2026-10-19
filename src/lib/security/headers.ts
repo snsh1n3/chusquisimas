@@ -75,10 +75,11 @@ export function buildCsp(options: { frameAncestors: "'none'" | "'self'" }): stri
 const CSP_HEADER = CSP_ENFORCE ? "Content-Security-Policy" : "Content-Security-Policy-Report-Only";
 
 const COMMON_HEADERS: HeaderEntry[] = [
-  // Un año, solo para el host que responde. includeSubDomains/preload quedan
-  // pendientes hasta confirmar que ningún subdominio del dominio necesita HTTP:
-  // el navegador recuerda HSTS durante todo el max-age y no se puede revertir.
-  { key: "Strict-Transport-Security", value: "max-age=31536000" },
+  // Un año para el dominio y sus subdominios. Revisado el 19-oct-2026: los únicos
+  // subdominios web (www y admin) van por Cloudflare con HTTPS; el resto del DNS
+  // es correo. Antes de crear un subdominio nuevo, debe servir HTTPS desde el día uno.
+  // Sin preload: exige registrar el dominio en hstspreload.org y es difícil revertir.
+  { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {

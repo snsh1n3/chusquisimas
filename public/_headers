@@ -5,7 +5,7 @@
 # src/lib/security/headers.ts.
 /*
   X-Content-Type-Options: nosniff
-  Strict-Transport-Security: max-age=31536000
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
   Referrer-Policy: strict-origin-when-cross-origin
 
 /_next/static/*

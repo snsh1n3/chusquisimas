@@ -32,8 +32,10 @@ describe("security header rules", () => {
     }
   });
 
-  it("no habilita includeSubDomains ni preload sin revisar subdominios", () => {
-    assert.doesNotMatch(store.get("strict-transport-security") ?? "", /includeSubDomains|preload/);
+  it("HSTS cubre subdominios pero no se registra en preload", () => {
+    const hsts = store.get("strict-transport-security") ?? "";
+    assert.equal(hsts, "max-age=31536000; includeSubDomains");
+    assert.doesNotMatch(hsts, /preload/);
   });
 
   it("el panel no se puede incrustar ni indexar", () => {
