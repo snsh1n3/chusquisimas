@@ -32,13 +32,13 @@ export function CreateProductForm() {
   }
 
   return (
-    <form onSubmit={create} className="mt-5 grid gap-3 rounded-xl bg-surface p-5 sm:grid-cols-2">
+    <form onSubmit={create} className="mt-5 grid gap-3 rounded-control bg-surface p-5 sm:grid-cols-2">
       <label className="grid gap-1 text-sm">Nombre
         <input required minLength={2} maxLength={120} value={name} onChange={e => setName(e.target.value)}
-          className="rounded-lg border p-3" placeholder="Nombre del producto" />
+          className="rounded-control border p-3" placeholder="Nombre del producto" />
       </label>
       <label className="grid gap-1 text-sm">Tipo
-        <select value={productType} onChange={e => setProductType(e.target.value)} className="rounded-lg border p-3">
+        <select value={productType} onChange={e => setProductType(e.target.value)} className="rounded-control border p-3">
           <option value="candle">Vela</option>
           <option value="wax_melt">Wax melts</option>
           <option value="kit">Kit</option>
@@ -47,10 +47,10 @@ export function CreateProductForm() {
       </label>
       <label className="grid gap-1 text-sm sm:col-span-2">Descripción
         <textarea maxLength={2000} rows={2} value={description}
-          onChange={e => setDescription(e.target.value)} className="rounded-lg border p-3" />
+          onChange={e => setDescription(e.target.value)} className="rounded-control border p-3" />
       </label>
       <div className="flex flex-wrap items-center gap-4 sm:col-span-2">
-        <button type="submit" disabled={busy} className="rounded-lg bg-inverse px-5 py-3 font-semibold text-on-inverse disabled:opacity-40">
+        <button type="submit" disabled={busy} className="rounded-control bg-inverse px-5 py-3 font-semibold text-on-inverse disabled:opacity-40">
           {busy ? "Creando..." : "Crear borrador"}
         </button>
         <p role="status" className="text-sm">{notice}</p>
@@ -86,13 +86,13 @@ export function ProductVisibility({
     <div className="flex flex-wrap items-center gap-2">
       <select aria-label="Visibilidad del producto" value={selected}
         onChange={e => setSelected(e.target.value as ProductStatus)}
-        className="rounded-lg border bg-surface p-2 text-xs">
+        className="rounded-control border bg-surface p-2 text-xs">
         <option value="draft">Borrador (oculto)</option>
         <option value="active" disabled={!canPublish && status !== "active"}>Publicado</option>
         <option value="archived">Archivado (oculto)</option>
       </select>
       <button type="button" onClick={save} disabled={busy || selected === status}
-        className="rounded-lg bg-inverse px-3 py-2 text-xs text-on-inverse disabled:opacity-35">
+        className="rounded-control bg-inverse px-3 py-2 text-xs text-on-inverse disabled:opacity-35">
         Guardar estado
       </button>
       {notice && <span role="status" className="text-xs">{notice}</span>}

@@ -34,7 +34,7 @@ export function OrderPanel({ productName, variants }: { productName: string; var
 
   if (!selected) {
     return (
-      <div className="rounded-3xl border border-line bg-surface p-6">
+      <div className="rounded-card border border-line bg-surface p-6">
         <p className="font-bold">Este producto todavía no tiene presentaciones a la venta.</p>
         <a href={inquiryUrl} target="_blank" rel="noopener noreferrer"
           className="mt-4 inline-block rounded-full bg-inverse px-6 py-3 text-sm font-bold text-on-inverse">
@@ -46,7 +46,7 @@ export function OrderPanel({ productName, variants }: { productName: string; var
   }
 
   return (
-    <div className="flex flex-col gap-6 rounded-3xl border border-line bg-surface p-6">
+    <div className="flex flex-col gap-6 rounded-card border border-line bg-surface p-6">
       {variants.length > 1 && (
         <fieldset>
           <legend className="text-sm font-bold">Presentación</legend>

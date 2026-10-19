@@ -25,7 +25,7 @@ export function ProductPhotoUpload({ productId }: { productId: string }) {
       setBusy(false);
     }
   }
-  return <form onSubmit={upload} className="mt-2 flex max-w-60 flex-col gap-2 rounded-lg border p-3 text-xs">
+  return <form onSubmit={upload} className="mt-2 flex max-w-60 flex-col gap-2 rounded-control border p-3 text-xs">
     <strong>Fotografía del producto</strong>
     <input name="picture" aria-label="Fotografía" type="file" accept="image/png,image/jpeg,image/webp" required />
     <input name="alt" aria-label="Descripción accesible de la fotografía"

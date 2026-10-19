@@ -29,7 +29,7 @@ export function ProductCard({
   const availability = summarizeAvailability(variants);
 
   return (
-    <article className="group relative overflow-hidden rounded-3xl border border-line bg-surface shadow-sm transition hover:shadow-md">
+    <article className="group relative overflow-hidden rounded-card border border-line bg-surface transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
       <div className="relative flex aspect-square items-center justify-center bg-page">
         {mainImage ? (
           <Image

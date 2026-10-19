@@ -61,7 +61,7 @@ export function InventoryEditor({ variantId, initialOnHand }: InventoryEditorPro
         required
         value={quantity}
         onChange={(event) => setQuantity(event.target.value)}
-        className="w-24 rounded-lg border border-line-control p-2"
+        className="w-24 rounded-control border border-line-control p-2"
       />
       <label className="sr-only" htmlFor={`reason-${variantId}`}>Motivo del ajuste</label>
       <input
@@ -73,11 +73,11 @@ export function InventoryEditor({ variantId, initialOnHand }: InventoryEditorPro
         placeholder="Motivo del ajuste"
         value={reason}
         onChange={(event) => setReason(event.target.value)}
-        className="rounded-lg border border-line-control p-2"
+        className="rounded-control border border-line-control p-2"
       />
       <button
         disabled={loading || String(initialOnHand) === quantity}
-        className="rounded-lg bg-inverse px-4 py-2 font-bold text-on-inverse disabled:opacity-40"
+        className="rounded-control bg-inverse px-4 py-2 font-bold text-on-inverse disabled:opacity-40"
         type="submit"
       >
         {loading ? "Guardando..." : "Guardar"}

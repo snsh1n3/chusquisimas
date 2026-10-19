@@ -34,7 +34,8 @@ Reglas:
 | `border-line-control` | Bordes de inputs, selects y opciones (deben verse) | `--palette-taupe-line` | `#857868` |
 | `border-selected` | Miniatura u opción seleccionada | naranja oscuro | `#B84A12` |
 | `outline-focus` / `:focus-visible` | Anillo de foco de teclado | naranja oscuro | `#B84A12` |
-| `rounded-card` / `rounded-button` | Radios de tarjeta y botón | — | `1.5rem` / `9999px` |
+| `rounded-card` / `rounded-control` / `rounded-button` | Radios de tarjeta y panel (16 px), de controles, miniaturas y enlaces de menú (12 px) y de botón | — | `1rem` / `0.75rem` / `9999px` |
+| Elevación | Las tarjetas no usan sombras difusas: borde `border-line` y, en tarjetas enlazadas, `hover:-translate-y-0.5` (sin movimiento con `prefers-reduced-motion`) | — | — |
 | `shadow-hard` | Sombra dura de la marca (máximo un elemento por vista) | — | `4px 4px 0 #231F20` |
 
 ## Contrastes verificados (WCAG 2.2)

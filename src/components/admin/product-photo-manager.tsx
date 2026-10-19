@@ -61,7 +61,7 @@ export function ProductPhotoManager({ images }: { images: AdminProductImage[] })
           const isLast = index === images.length - 1;
           const isBusy = pending?.imageId === image.id;
           return (
-            <li key={image.id} className="flex gap-2 rounded-lg border border-line bg-surface p-2">
+            <li key={image.id} className="flex gap-2 rounded-control border border-line bg-surface p-2">
               {/* Miniatura privada del panel: sin optimizador de Next para no exponerla. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -70,7 +70,7 @@ export function ProductPhotoManager({ images }: { images: AdminProductImage[] })
                 width={64}
                 height={64}
                 loading="lazy"
-                className="h-16 w-16 shrink-0 rounded-md bg-panel object-cover"
+                className="h-16 w-16 shrink-0 rounded-control bg-panel object-cover"
               />
               <div className="flex min-w-0 flex-1 flex-col gap-1 text-xs">
                 <span className="truncate" title={image.alt}>{image.alt}</span>

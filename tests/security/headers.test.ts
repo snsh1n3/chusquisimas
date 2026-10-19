@@ -44,8 +44,10 @@ describe("security header rules", () => {
     assert.match(store.get(cspKey) ?? "", /frame-ancestors 'self'/);
   });
 
-  it("arranca en Report-Only y reporta al endpoint propio", () => {
-    assert.equal(CSP_ENFORCE, false, "cambiar a enforce solo tras revisar reportes en producción");
+  it("se aplica en modo bloqueante, eleva HTTP a HTTPS y reporta al endpoint propio", () => {
+    assert.equal(CSP_ENFORCE, true);
+    assert.equal(admin.get("content-security-policy-report-only"), undefined);
+    assert.match(admin.get(cspKey) ?? "", /upgrade-insecure-requests/);
     assert.match(admin.get(cspKey) ?? "", new RegExp(`report-uri ${CSP_REPORT_PATH}`));
     assert.match(admin.get("reporting-endpoints") ?? "", /csp="\/api\/csp-report"/);
   });

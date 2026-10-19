@@ -58,7 +58,7 @@ export default function Home() {
             {categories.map((category) => (
               <article
                 key={category.number}
-                className={`${category.accent} ${category.text} flex min-h-52 flex-col justify-between rounded-[1.5rem] p-6 shadow-sm sm:min-h-56 sm:p-7`}
+                className={`${category.accent} ${category.text} flex min-h-52 flex-col justify-between rounded-card p-6 sm:min-h-56 sm:p-7`}
               >
                 <span className="text-sm font-bold">
                   {category.number} / Colección

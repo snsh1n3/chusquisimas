@@ -19,9 +19,13 @@ Revisión de accesibilidad y SEO técnico sobre el código y la página en produ
 | Contenido | Pie de página decía "Vista preliminar V2 · No publicada" | Media | Pie nuevo en todas las páginas con tienda, WhatsApp e Instagram |
 | Contenido | Sin página 404 de la marca | Baja | `not-found.tsx` con la mascota |
 
+## Ajustes posteriores (19 oct)
+
+- Radios alineados a la guía: tarjetas y paneles 16 px (`rounded-card`), controles y miniaturas 12 px (`rounded-control`); sin sombras difusas, con elevación de 2 px al pasar sobre las tarjetas de producto.
+- CSP en modo bloqueante.
+
 ## Pendiente
 
 - Imagen Open Graph de 1200×630 (PNG o JPG) para inicio y tienda: la diseña el rediseño.
 - Medir con Lighthouse (accesibilidad, SEO, buenas prácticas) en móvil después del despliegue.
 - Prueba con VoiceOver en el iPhone: menú, galería y panel de pedido.
-- Radios y sombras de tarjetas frente a la guía de marca (12–16 px).

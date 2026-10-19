@@ -17,16 +17,19 @@ básicas desde `public/_headers`.
 | CSP `frame-ancestors` | `'self'` | `'none'` |
 | `X-Robots-Tag` | — | `noindex, nofollow` |
 
-### CSP en modo Report-Only
+### CSP
 
-La política se envía como `Content-Security-Policy-Report-Only`: el navegador no
-bloquea nada y reporta a `/api/csp-report`, que registra eventos `csp.violation`.
+En modo bloqueante desde el 19-oct-2026, después de una semana en Report-Only.
+Se activó sin revisar los logs de esa semana: la única violación conocida era
+el beacon de Cloudflare Web Analytics, que quedó permitido. Conviene revisar
+`csp.violation` los primeros días. El navegador sigue reportando a `/api/csp-report`, que
+registra eventos `csp.violation`.
 
-Para activarla:
-1. Dejar correr al menos una semana con tráfico real.
-2. Revisar `event = csp.violation` en Workers Logs. Cada origen legítimo
-   (por ejemplo Cloudflare Web Analytics) se agrega en `BASE_CSP`.
-3. Cambiar `CSP_ENFORCE` a `true` y actualizar el test que lo fija en `false`.
+Si algo legítimo deja de cargar (un script, una imagen o una conexión externa):
+1. Buscar `event = csp.violation` en Workers Logs: `directive` y `blocked`
+   indican qué se bloqueó.
+2. Agregar ese origen en `BASE_CSP`, o volver a Report-Only con
+   `CSP_ENFORCE = false` mientras se corrige, y desplegar.
 
 Pendiente: sustituir `'unsafe-inline'` en `script-src` por nonces de Next.js.
 

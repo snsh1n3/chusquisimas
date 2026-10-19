@@ -105,7 +105,7 @@ export default async function StorePage({
           ))}
         </nav>
 
-        <div className="mt-12 rounded-3xl border border-line bg-surface px-6 py-16 text-center sm:px-12">
+        <div className="mt-12 rounded-card border border-line bg-surface px-6 py-16 text-center sm:px-12">
           {published === null ? (
             <>
               <p className="text-4xl" aria-hidden="true">

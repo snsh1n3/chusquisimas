@@ -38,7 +38,7 @@ export function AddVariant({
       setBusy(false);
     }
   }
-  return <div className="mt-3 flex flex-col gap-2 rounded-lg border bg-surface p-3">
+  return <div className="mt-3 flex flex-col gap-2 rounded-control border bg-surface p-3">
     <span className="text-xs font-semibold">Añadir variante</span>
     {productType === "candle" && <select aria-label="Aroma de variante"
       value={aromaId} onChange={e => setAromaId(e.target.value)}

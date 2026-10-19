@@ -43,7 +43,7 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="relative mx-auto aspect-[5/4] w-full max-w-[540px] overflow-hidden rounded-[2rem] bg-highlight sm:aspect-[6/4] lg:aspect-square">
+        <div className="relative mx-auto aspect-[5/4] w-full max-w-[540px] overflow-hidden rounded-card bg-highlight sm:aspect-[6/4] lg:aspect-square">
           <div
             aria-hidden="true"
             className="absolute -left-10 -top-14 h-44 w-44 rounded-full border-[24px] border-accent/75 sm:h-56 sm:w-56"
@@ -54,7 +54,7 @@ export function Hero() {
           />
           <div
             aria-hidden="true"
-            className="absolute right-[12%] top-[15%] h-8 w-8 rotate-12 rounded-xl bg-surface sm:h-12 sm:w-12"
+            className="absolute right-[12%] top-[15%] h-8 w-8 rotate-12 rounded-control bg-surface sm:h-12 sm:w-12"
           />
           <div
             aria-hidden="true"

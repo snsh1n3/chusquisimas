@@ -15,7 +15,7 @@ export function ProductGallery({ name, images }: { name: string; images: PublicP
 
   if (!current) {
     return (
-      <div className="flex aspect-square items-center justify-center rounded-3xl bg-panel">
+      <div className="flex aspect-square items-center justify-center rounded-card bg-panel">
         <span className="text-sm font-bold text-fg-muted">Fotografía próximamente</span>
       </div>
     );
@@ -23,7 +23,7 @@ export function ProductGallery({ name, images }: { name: string; images: PublicP
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="relative aspect-square overflow-hidden rounded-3xl bg-panel">
+      <div className="relative aspect-square overflow-hidden rounded-card bg-panel">
         <Image
           key={current.id}
           src={current.src}
@@ -44,7 +44,7 @@ export function ProductGallery({ name, images }: { name: string; images: PublicP
                 onClick={() => setSelected(index)}
                 aria-label={`Ver fotografía ${index + 1} de ${images.length}: ${image.alt}`}
                 aria-current={index === selected ? "true" : undefined}
-                className={`relative block h-20 w-20 overflow-hidden rounded-xl border-2 transition ${
+                className={`relative block h-20 w-20 overflow-hidden rounded-control border-2 transition ${
                   index === selected ? "border-selected" : "border-transparent opacity-75 hover:opacity-100"
                 }`}
               >

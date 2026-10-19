@@ -95,10 +95,10 @@ export default async function AdminHomePage({ searchParams }: {
           y queda registrado con la identidad del administrador.
         </p>
         <nav className="mt-6 flex flex-wrap gap-3 text-sm">
-          <Link href="/admin" className={`rounded-lg px-4 py-2 ${!showArchived ? "bg-inverse text-on-inverse" : "border bg-surface"}`}>Catálogo activo y borradores</Link>
-          <Link href="/admin?archived=1" className={`rounded-lg px-4 py-2 ${showArchived ? "bg-inverse text-on-inverse" : "border bg-surface"}`}>Ver archivados</Link>
+          <Link href="/admin" className={`rounded-control px-4 py-2 ${!showArchived ? "bg-inverse text-on-inverse" : "border bg-surface"}`}>Catálogo activo y borradores</Link>
+          <Link href="/admin?archived=1" className={`rounded-control px-4 py-2 ${showArchived ? "bg-inverse text-on-inverse" : "border bg-surface"}`}>Ver archivados</Link>
         </nav>
-        <div className="mt-5 overflow-x-auto rounded-2xl bg-surface shadow-sm">
+        <div className="mt-5 overflow-x-auto rounded-card border border-line bg-surface">
           <table className="w-full text-left text-sm">
             <thead className="bg-panel">
               <tr>

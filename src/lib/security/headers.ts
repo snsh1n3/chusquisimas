@@ -5,16 +5,20 @@
  * (páginas dinámicas, RSC y rutas /api). Los archivos estáticos que sirve el
  * binding ASSETS sin pasar por el Worker reciben las básicas vía public/_headers.
  *
- * La CSP arranca en modo Report-Only: el navegador no bloquea nada, solo
- * reporta a /api/csp-report. Cuando los reportes muestren cero violaciones
- * legítimas se cambia CSP_ENFORCE a true.
+ * La CSP se aplica en modo bloqueante y sigue reportando violaciones a
+ * /api/csp-report (eventos csp.violation en Workers Logs).
  */
 
 export const ADMIN_HOST = "admin.chusquisimas.com";
 export const CSP_REPORT_PATH = "/api/csp-report";
 
-/** Cambiar a true solo después de revisar los reportes en producción. */
-export const CSP_ENFORCE = false;
+/**
+ * Activada el 19-oct-2026 tras una semana en Report-Only, sin revisar los logs
+ * de esa semana: la única violación conocida era el beacon de Web Analytics, ya
+ * permitido. Los reportes siguen llegando a /api/csp-report. Para revertir ante
+ * un bloqueo legítimo: false y desplegar.
+ */
+export const CSP_ENFORCE = true;
 
 export interface HeaderEntry {
   key: string;

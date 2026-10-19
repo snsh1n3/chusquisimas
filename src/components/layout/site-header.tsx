@@ -115,7 +115,7 @@ export function SiteHeader() {
                 href={item.href}
                 aria-current={item.href === pathname ? "page" : undefined}
                 onClick={() => setMenuOpen(false)}
-                className="rounded-xl px-4 py-3 text-base font-bold hover:bg-page"
+                className="rounded-control px-4 py-3 text-base font-bold hover:bg-page"
               >
                 {item.label}
               </Link>

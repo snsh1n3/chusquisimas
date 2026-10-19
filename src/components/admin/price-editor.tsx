@@ -34,8 +34,8 @@ export function PriceEditor({ variantId, previous }: { variantId: string; previo
   return <form onSubmit={submit} className="flex flex-col gap-2">
     <input type="number" aria-label="Precio COP" min="0" step="1" placeholder="Sin precio"
       value={text} onChange={event => setText(event.target.value)}
-      className="w-36 rounded-lg border p-2" />
-    <button type="submit" disabled={pending} className="rounded-lg bg-inverse px-3 py-2 text-on-inverse disabled:opacity-40">
+      className="w-36 rounded-control border p-2" />
+    <button type="submit" disabled={pending} className="rounded-control bg-inverse px-3 py-2 text-on-inverse disabled:opacity-40">
       {pending ? "Guardando..." : "Guardar precio"}
     </button>
     {status && <span role="status" className="text-xs">{status}</span>}

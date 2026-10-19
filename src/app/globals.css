@@ -112,7 +112,9 @@
 
   --font-sans: var(--font-quicksand);
 
-  --radius-card: 1.5rem;
+  /* Guía de marca: formas redondeadas suaves de 12 a 16 px. */
+  --radius-card: 1rem;
+  --radius-control: 0.75rem;
   --radius-button: 9999px;
 
   --shadow-hard: var(--shadow-hard-value);
