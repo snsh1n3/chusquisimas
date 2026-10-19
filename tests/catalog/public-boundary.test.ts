@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 /**
@@ -8,7 +9,8 @@ import test from "node:test";
  * getPublicCatalog(). getPublishedCatalog() incluye on_hand/reserved y queda
  * reservado a código de servidor del catálogo.
  */
-const ROOT = new URL("../../src/", import.meta.url).pathname;
+// fileURLToPath: en Windows `.pathname` da "/D:/..." y la ruta queda mal formada.
+const ROOT = fileURLToPath(new URL("../../src/", import.meta.url));
 const PUBLIC_DIRS = ["app", "components"];
 const ALLOWED = [/^app\/admin\//, /^app\/api\/admin\//, /^components\/admin\//];
 
