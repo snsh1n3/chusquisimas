@@ -24,6 +24,16 @@ Revisión de accesibilidad y SEO técnico sobre el código y la página en produ
 - Radios alineados a la guía: tarjetas y paneles 16 px (`rounded-card`), controles y miniaturas 12 px (`rounded-control`); sin sombras difusas, con elevación de 2 px al pasar sobre las tarjetas de producto.
 - CSP en modo bloqueante.
 
+## Lighthouse (19 oct, versión desplegada)
+
+| Hallazgo | Decisión |
+|---|---|
+| CSS que bloquea el render (7,1 KiB) y cadena HTML → CSS; el texto del LCP esperaba 740 ms (móvil) y 960 ms (escritorio) | `experimental.inlineCss`: el CSS va dentro del HTML |
+| Legacy JavaScript (14 KiB de polyfills) | Los incluye Next.js; sin acción |
+| JavaScript sin usar (30 KiB) | Parte de React en la carga inicial; sin acción |
+| Tarea larga de 88 ms (hidratación) | Aceptable; sin acción |
+| Tamaño del DOM (96 elementos) | Bien |
+
 ## Pendiente
 
 - Imagen Open Graph de 1200×630 (PNG o JPG) para inicio y tienda: la diseña el rediseño.
