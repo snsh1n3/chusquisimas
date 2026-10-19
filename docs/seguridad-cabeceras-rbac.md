@@ -44,10 +44,11 @@ Cualquier subdominio nuevo que se abra en un navegador debe servir HTTPS
 desde el primer día: los navegadores que ya visitaron el sitio no aceptarán
 HTTP durante un año. Sin `preload`.
 
-Nota: `www` todavía es un CNAME al proyecto Pages anterior
-(`selvarea-app.pages.dev`). La redirección a `chusquisimas.com` funciona
-(301), pero falta confirmar si la hace una regla de Cloudflare o ese proyecto
-Pages: si fuera el proyecto, borrarlo rompería `www`.
+`www` es un registro `AAAA 100::` con proxy (sin servidor de origen). La
+redirección la hace la regla de Cloudflare "Redirect www to apex" (Rules →
+Redirect Rules): `https://www.chusquisimas.com/*` → `https://chusquisimas.com/${1}`,
+301, conservando la query string. Verificado el 19-oct-2026. El proyecto Pages
+anterior (`selvarea-app`) ya no recibe tráfico.
 
 ## RBAC: D1 como fuente única
 
