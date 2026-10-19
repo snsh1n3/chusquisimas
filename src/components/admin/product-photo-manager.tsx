@@ -21,7 +21,7 @@ export function ProductPhotoManager({ images }: { images: AdminProductImage[] })
   const [message, setMessage] = useState("");
 
   if (images.length === 0) {
-    return <p className="mt-2 text-xs text-[#66584D]">Sin fotografías todavía.</p>;
+    return <p className="mt-2 text-xs text-fg-muted">Sin fotografías todavía.</p>;
   }
 
   const expectedOrder = images.map((image) => image.id);
@@ -61,7 +61,7 @@ export function ProductPhotoManager({ images }: { images: AdminProductImage[] })
           const isLast = index === images.length - 1;
           const isBusy = pending?.imageId === image.id;
           return (
-            <li key={image.id} className="flex gap-2 rounded-lg border border-[#EDE3D7] bg-[#FFFDF9] p-2">
+            <li key={image.id} className="flex gap-2 rounded-lg border border-line bg-surface p-2">
               {/* Miniatura privada del panel: sin optimizador de Next para no exponerla. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -70,12 +70,12 @@ export function ProductPhotoManager({ images }: { images: AdminProductImage[] })
                 width={64}
                 height={64}
                 loading="lazy"
-                className="h-16 w-16 shrink-0 rounded-md bg-[#EDE3D7] object-cover"
+                className="h-16 w-16 shrink-0 rounded-md bg-panel object-cover"
               />
               <div className="flex min-w-0 flex-1 flex-col gap-1 text-xs">
                 <span className="truncate" title={image.alt}>{image.alt}</span>
                 {isFirst && (
-                  <span className="w-fit rounded-full bg-[#FFCC01] px-2 py-0.5 font-bold text-[#231F20]">
+                  <span className="w-fit rounded-full bg-highlight px-2 py-0.5 font-bold text-on-highlight">
                     Principal
                   </span>
                 )}
@@ -97,7 +97,7 @@ export function ProductPhotoManager({ images }: { images: AdminProductImage[] })
                     <>
                       <button type="button" disabled={busy}
                         onClick={() => send({ action: "delete", imageId: image.id, confirmation: "ELIMINAR" }, "Eliminando")}
-                        className="rounded bg-[#B83817] px-2 py-1 font-bold text-white disabled:opacity-30">
+                        className="rounded bg-danger px-2 py-1 font-bold text-on-danger disabled:opacity-30">
                         Confirmar
                       </button>
                       <button type="button" disabled={busy} onClick={() => setConfirmDelete(null)}
@@ -105,7 +105,7 @@ export function ProductPhotoManager({ images }: { images: AdminProductImage[] })
                     </>
                   ) : (
                     <button type="button" disabled={busy} onClick={() => setConfirmDelete(image.id)}
-                      className="rounded border border-[#B83817] px-2 py-1 text-[#B83817] disabled:opacity-30">
+                      className="rounded border border-danger px-2 py-1 text-danger disabled:opacity-30">
                       Eliminar
                     </button>
                   )}
@@ -116,7 +116,7 @@ export function ProductPhotoManager({ images }: { images: AdminProductImage[] })
           );
         })}
       </ol>
-      {message && <p role="alert" className="mt-2 text-xs text-[#B83817]">{message}</p>}
+      {message && <p role="alert" className="mt-2 text-xs text-danger">{message}</p>}
     </div>
   );
 }

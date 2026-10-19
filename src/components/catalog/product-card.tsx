@@ -29,8 +29,8 @@ export function ProductCard({
   const availability = summarizeAvailability(variants);
 
   return (
-    <article className="group relative overflow-hidden rounded-3xl border border-brand-black/10 bg-brand-white shadow-sm transition hover:shadow-md">
-      <div className="relative flex aspect-square items-center justify-center bg-brand-cream">
+    <article className="group relative overflow-hidden rounded-3xl border border-line bg-surface shadow-sm transition hover:shadow-md">
+      <div className="relative flex aspect-square items-center justify-center bg-page">
         {mainImage ? (
           <Image
             src={mainImage.thumbSrc ?? mainImage.src}
@@ -42,7 +42,7 @@ export function ProductCard({
           />
         ) : (
           <div className="px-6 text-center">
-            <span className="text-sm font-bold text-brand-black/45">
+            <span className="text-sm font-bold text-fg-muted">
               Fotografía próximamente
             </span>
           </div>
@@ -51,25 +51,25 @@ export function ProductCard({
 
       <div className="flex flex-col gap-3 p-5">
         {categoryName && (
-          <p className="text-xs font-bold uppercase tracking-widest text-brand-orange">
+          <p className="text-xs font-bold uppercase tracking-widest text-fg-accent">
             {categoryName}
           </p>
         )}
 
-        <h2 className="text-xl font-bold text-brand-black">
+        <h2 className="text-xl font-bold text-fg">
           {/* El enlace cubre toda la tarjeta con ::after, sin anidar elementos interactivos. */}
           <Link href={`/tienda/${product.slug}`}
-            className="after:absolute after:inset-0 after:content-[''] focus-visible:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-orange">
+            className="after:absolute after:inset-0 after:content-[''] focus-visible:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
             {product.name}
           </Link>
         </h2>
 
-        <p className="line-clamp-2 text-sm leading-6 text-brand-black/65">
+        <p className="line-clamp-2 text-sm leading-6 text-fg-muted">
           {product.description}
         </p>
 
         <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
-          <p className="text-base font-bold text-brand-black">
+          <p className="text-base font-bold text-fg">
             {price === null
               ? "Precio no disponible"
               : price.hasRange
@@ -77,7 +77,7 @@ export function ProductCard({
                 : formatPriceCOP(price.amount)}
           </p>
 
-          <span className="rounded-full bg-brand-cream px-3 py-1 text-xs font-bold text-brand-black">
+          <span className="rounded-full bg-page px-3 py-1 text-xs font-bold text-fg">
             {availability}
           </span>
         </div>

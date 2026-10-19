@@ -35,7 +35,7 @@ export function PriceEditor({ variantId, previous }: { variantId: string; previo
     <input type="number" aria-label="Precio COP" min="0" step="1" placeholder="Sin precio"
       value={text} onChange={event => setText(event.target.value)}
       className="w-36 rounded-lg border p-2" />
-    <button type="submit" disabled={pending} className="rounded-lg bg-[#231F20] px-3 py-2 text-white disabled:opacity-40">
+    <button type="submit" disabled={pending} className="rounded-lg bg-inverse px-3 py-2 text-on-inverse disabled:opacity-40">
       {pending ? "Guardando..." : "Guardar precio"}
     </button>
     {status && <span role="status" className="text-xs">{status}</span>}

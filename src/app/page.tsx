@@ -6,37 +6,37 @@ const categories = [
     number: "01",
     title: "Velas aromáticas",
     description: "Aromas que hacen que cualquier rincón se sienta especial.",
-    accent: "bg-brand-orange",
-    text: "text-white",
+    accent: "bg-accent",
+    text: "text-on-accent",
   },
   {
     number: "02",
     title: "Wax melts",
     description: "Pequeños detalles llenos de aroma y personalidad.",
-    accent: "bg-brand-yellow",
-    text: "text-brand-black",
+    accent: "bg-highlight",
+    text: "text-fg",
   },
   {
     number: "03",
     title: "Detalles personalizados",
     description: "Ideas únicas para celebrar momentos que importan.",
-    accent: "bg-brand-cream-deep",
-    text: "text-brand-black",
+    accent: "bg-panel",
+    text: "text-fg",
   },
 ];
 
 export default function Home() {
   return (
-    <main id="inicio" className="min-h-screen bg-brand-cream text-brand-black">
+    <main id="inicio" className="min-h-screen bg-page text-fg">
       <SiteHeader />
       <Hero />
 
       <section
         id="colecciones"
-        className="bg-brand-white px-5 py-12 sm:py-16 md:px-10"
+        className="bg-surface px-5 py-12 sm:py-16 md:px-10"
       >
         <div className="mx-auto max-w-7xl">
-          <p className="font-bold uppercase tracking-[0.2em] text-brand-orange">
+          <p className="font-bold uppercase tracking-[0.2em] text-fg-accent">
             Un universo de aromas
           </p>
           <h2 className="mt-4 text-4xl font-bold tracking-tight md:text-5xl">
@@ -73,7 +73,7 @@ export default function Home() {
       >
         <div className="mx-auto grid max-w-7xl items-center gap-8 md:grid-cols-2">
           <div>
-            <p className="font-bold uppercase tracking-[0.2em] text-brand-orange">
+            <p className="font-bold uppercase tracking-[0.2em] text-fg-accent">
               Nuestra esencia
             </p>
             <h2 className="mt-4 text-4xl font-bold md:text-5xl">
@@ -90,7 +90,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="bg-brand-black px-5 py-8 text-brand-white md:px-10">
+      <footer className="bg-inverse px-5 py-8 text-on-inverse md:px-10">
         <div className="mx-auto flex max-w-7xl flex-col justify-between gap-3 text-sm md:flex-row">
           <span className="font-bold">Chusquisimas</span>
           <span>Crea ambiente, enciende tu chusquísima.</span>

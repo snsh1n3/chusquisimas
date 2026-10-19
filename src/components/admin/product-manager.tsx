@@ -32,7 +32,7 @@ export function CreateProductForm() {
   }
 
   return (
-    <form onSubmit={create} className="mt-5 grid gap-3 rounded-xl bg-white p-5 sm:grid-cols-2">
+    <form onSubmit={create} className="mt-5 grid gap-3 rounded-xl bg-surface p-5 sm:grid-cols-2">
       <label className="grid gap-1 text-sm">Nombre
         <input required minLength={2} maxLength={120} value={name} onChange={e => setName(e.target.value)}
           className="rounded-lg border p-3" placeholder="Nombre del producto" />
@@ -50,7 +50,7 @@ export function CreateProductForm() {
           onChange={e => setDescription(e.target.value)} className="rounded-lg border p-3" />
       </label>
       <div className="flex flex-wrap items-center gap-4 sm:col-span-2">
-        <button type="submit" disabled={busy} className="rounded-lg bg-[#231F20] px-5 py-3 font-semibold text-white disabled:opacity-40">
+        <button type="submit" disabled={busy} className="rounded-lg bg-inverse px-5 py-3 font-semibold text-on-inverse disabled:opacity-40">
           {busy ? "Creando..." : "Crear borrador"}
         </button>
         <p role="status" className="text-sm">{notice}</p>
@@ -86,13 +86,13 @@ export function ProductVisibility({
     <div className="flex flex-wrap items-center gap-2">
       <select aria-label="Visibilidad del producto" value={selected}
         onChange={e => setSelected(e.target.value as ProductStatus)}
-        className="rounded-lg border bg-white p-2 text-xs">
+        className="rounded-lg border bg-surface p-2 text-xs">
         <option value="draft">Borrador (oculto)</option>
         <option value="active" disabled={!canPublish && status !== "active"}>Publicado</option>
         <option value="archived">Archivado (oculto)</option>
       </select>
       <button type="button" onClick={save} disabled={busy || selected === status}
-        className="rounded-lg bg-[#231F20] px-3 py-2 text-xs text-white disabled:opacity-35">
+        className="rounded-lg bg-inverse px-3 py-2 text-xs text-on-inverse disabled:opacity-35">
         Guardar estado
       </button>
       {notice && <span role="status" className="text-xs">{notice}</span>}
@@ -126,7 +126,7 @@ export function VariantVisibility({
         onClick={toggle} className="rounded border px-2 py-1 text-xs disabled:opacity-40">
         {status === "active" ? "Desactivar variante" : "Activar variante"}
       </button>
-      {!hasPrice && <p className="text-xs text-[#66584D]">Define un precio primero</p>}
+      {!hasPrice && <p className="text-xs text-fg-muted">Define un precio primero</p>}
       {notice && <p role="status" className="text-xs">{notice}</p>}
     </div>
   );
@@ -194,15 +194,15 @@ export function EditProduct({
       <button type="button" onClick={() => setOpen(v => !v)}
         className="rounded border px-2 py-1">Editar producto</button>
       {status === "archived" && <button type="button" disabled={busy} onClick={permanentlyDelete}
-        className="rounded border border-red-400 px-2 py-1 font-semibold text-red-700 disabled:opacity-40">
+        className="rounded border border-danger px-2 py-1 font-semibold text-danger disabled:opacity-40">
         Eliminar definitivamente
       </button>}
       {status !== "archived" && <button type="button" disabled={busy} onClick={archive}
-        className="rounded border border-red-200 px-2 py-1 text-red-700 disabled:opacity-40">
+        className="rounded border border-line-control px-2 py-1 text-danger disabled:opacity-40">
         Archivar / retirar
       </button>}
     </div>
-    {open && <form onSubmit={save} className="mt-2 flex min-w-44 flex-col gap-2 rounded border bg-white p-2">
+    {open && <form onSubmit={save} className="mt-2 flex min-w-44 flex-col gap-2 rounded border bg-surface p-2">
       <label>Nombre
         <input required minLength={2} maxLength={120} value={name}
           onChange={e => setName(e.target.value)} className="w-full rounded border p-2" />
@@ -221,7 +221,7 @@ export function EditProduct({
         </select>
       </label>
       <button type="submit" disabled={busy}
-        className="rounded bg-[#231F20] px-2 py-2 text-white disabled:opacity-40">
+        className="rounded bg-inverse px-2 py-2 text-on-inverse disabled:opacity-40">
         {busy ? "Guardando..." : "Guardar cambios"}
       </button>
     </form>}

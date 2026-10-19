@@ -1,38 +1,121 @@
 @import "tailwindcss";
 
+/*
+ * Tokens de diseño de Chusquisimas.
+ *
+ * Dos capas:
+ *  1. Primitivos (--palette-*): los valores crudos de la marca. Para un rediseño,
+ *     normalmente solo se cambian estos valores.
+ *  2. Semánticos (--page, --fg, --action…): el rol de cada color. Los componentes
+ *     usan SOLO estos, vía las utilidades de Tailwind definidas en @theme
+ *     (bg-page, text-fg, bg-action…). Nunca hex sueltos ni primitivos en los componentes.
+ *
+ * Contrastes verificados (WCAG 2.2) y mapa completo en docs/design-tokens.md.
+ */
+
 :root {
   color-scheme: light;
 
-  --brand-orange: #f16623;
-  --brand-yellow: #ffcc01;
-  --brand-black: #231f20;
+  /* ---------- 1. Primitivos ---------- */
+  --palette-cream: #f7f1e9; /* fondo general */
+  --palette-cream-deep: #ede3d7; /* panel alterno */
+  --palette-warm-white: #fffdf9; /* tarjetas y formularios */
+  --palette-ink: #231f20; /* tinta */
+  --palette-taupe: #66584d; /* texto secundario */
+  --palette-taupe-line: #857868; /* bordes de controles (≥3:1) */
+  --palette-orange: #f16623; /* acento principal, solo relleno */
+  --palette-orange-deep: #b84a12; /* naranja para texto y foco (4.65:1 sobre crema) */
+  --palette-yellow: #ffcc01; /* acento de apoyo, solo detalles */
+  --palette-red: #b83817; /* acciones destructivas del panel */
 
-  --brand-cream: #f7f1e9;
-  --brand-cream-deep: #ede3d7;
-  --brand-white: #fffdf9;
+  /* ---------- 2. Semánticos ---------- */
+  /* Superficies */
+  --page: var(--palette-cream);
+  --panel: var(--palette-cream-deep);
+  --surface: var(--palette-warm-white);
 
-  --background: var(--brand-cream);
-  --foreground: var(--brand-black);
+  /* Texto */
+  --fg: var(--palette-ink);
+  --fg-muted: var(--palette-taupe);
+  --fg-accent: var(--palette-orange-deep); /* no usar sobre --panel (4.1:1) */
 
-  --border-soft: rgba(35, 31, 32, 0.14);
-  --shadow-soft: 0 22px 55px rgba(35, 31, 32, 0.11);
+  /* Acción principal (un CTA por vista) */
+  --action: var(--palette-orange);
+  --on-action: var(--palette-ink);
+  --action-hover: var(--palette-ink);
+  --on-action-hover: var(--palette-warm-white);
+
+  /* Inverso: botones del panel, chips activos, sección en tinta */
+  --inverse: var(--palette-ink);
+  --on-inverse: var(--palette-warm-white);
+
+  /* Peligro (eliminar, errores) */
+  --danger: var(--palette-red);
+  --on-danger: var(--palette-warm-white);
+
+  /* Acento decorativo (rellenos de marca que no son botones) */
+  --accent: var(--palette-orange);
+  --on-accent: var(--palette-ink);
+
+  /* Selección (miniatura activa, opción elegida) */
+  --selected: var(--palette-orange-deep);
+
+  /* Detalles */
+  --highlight: var(--palette-yellow);
+  --on-highlight: var(--palette-ink);
+
+  /* Líneas */
+  --line: rgba(35, 31, 32, 0.14); /* separadores decorativos */
+  --line-strong: var(--palette-ink); /* contornos marcados */
+  --line-control: var(--palette-taupe-line); /* inputs y selects */
+
+  /* Foco */
+  --focus: var(--palette-orange-deep);
+
+  /* Forma */
+  --shadow-hard-value: 4px 4px 0 var(--palette-ink); /* máximo un elemento por vista */
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-page: var(--page);
+  --color-panel: var(--panel);
+  --color-surface: var(--surface);
 
-  --color-brand-orange: var(--brand-orange);
-  --color-brand-yellow: var(--brand-yellow);
-  --color-brand-black: var(--brand-black);
-  --color-brand-cream: var(--brand-cream);
-  --color-brand-cream-deep: var(--brand-cream-deep);
-  --color-brand-white: var(--brand-white);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-accent: var(--fg-accent);
+
+  --color-action: var(--action);
+  --color-on-action: var(--on-action);
+  --color-action-hover: var(--action-hover);
+  --color-on-action-hover: var(--on-action-hover);
+
+  --color-inverse: var(--inverse);
+  --color-on-inverse: var(--on-inverse);
+
+  --color-danger: var(--danger);
+  --color-on-danger: var(--on-danger);
+
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+
+  --color-selected: var(--selected);
+
+  --color-highlight: var(--highlight);
+  --color-on-highlight: var(--on-highlight);
+
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-line-control: var(--line-control);
+
+  --color-focus: var(--focus);
 
   --font-sans: var(--font-quicksand);
 
   --radius-card: 1.5rem;
   --radius-button: 9999px;
+
+  --shadow-hard: var(--shadow-hard-value);
 }
 
 * {
@@ -43,11 +126,17 @@ html {
   scroll-behavior: smooth;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body {
   min-height: 100vh;
   margin: 0;
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--page);
+  color: var(--fg);
   font-family: var(--font-quicksand), Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -68,11 +157,11 @@ button:disabled {
 }
 
 ::selection {
-  background: var(--brand-yellow);
-  color: var(--brand-black);
+  background: var(--highlight);
+  color: var(--on-highlight);
 }
 
 :focus-visible {
-  outline: 3px solid var(--brand-orange);
+  outline: 3px solid var(--focus);
   outline-offset: 3px;
 }

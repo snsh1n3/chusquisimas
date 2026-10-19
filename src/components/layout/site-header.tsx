@@ -15,7 +15,7 @@ export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="relative z-50 border-b border-brand-black/10 bg-brand-white">
+    <header className="relative z-50 border-b border-line bg-surface">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-5 md:px-10">
         <Link
           href="/"
@@ -44,7 +44,7 @@ export function SiteHeader() {
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm font-bold transition-colors hover:text-brand-orange"
+              className="text-sm font-bold transition-colors hover:text-fg-accent"
             >
               {item.label}
             </Link>
@@ -53,7 +53,7 @@ export function SiteHeader() {
 
         <Link
           href="/tienda"
-          className="hidden rounded-full bg-brand-orange px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-brand-black sm:inline-flex"
+          className="hidden rounded-full bg-action px-5 py-3 text-sm font-bold text-on-action transition-colors hover:bg-action-hover hover:text-on-action-hover sm:inline-flex"
         >
           Explorar
         </Link>
@@ -61,7 +61,7 @@ export function SiteHeader() {
         <div className="flex items-center gap-2 lg:hidden">
           <Link
             href="/tienda"
-            className="rounded-full bg-brand-orange px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-black"
+            className="rounded-full bg-action px-4 py-2.5 text-sm font-bold text-on-action transition-colors hover:bg-action-hover hover:text-on-action-hover"
           >
             Tienda
           </Link>
@@ -72,7 +72,7 @@ export function SiteHeader() {
           aria-expanded={menuOpen}
           aria-controls="mobile-navigation"
           onClick={() => setMenuOpen(!menuOpen)}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-brand-black/20 lg:hidden"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-line lg:hidden"
         >
           <span aria-hidden="true" className="text-2xl leading-none">
             {menuOpen ? "×" : "☰"}
@@ -85,7 +85,7 @@ export function SiteHeader() {
         <nav
           id="mobile-navigation"
           aria-label="Navegacion movil"
-          className="border-t border-brand-black/10 bg-brand-white px-5 py-4 lg:hidden"
+          className="border-t border-line bg-surface px-5 py-4 lg:hidden"
         >
           <div className="mx-auto flex max-w-7xl flex-col gap-2">
             {navigation.map((item) => (
@@ -93,7 +93,7 @@ export function SiteHeader() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setMenuOpen(false)}
-                className="rounded-xl px-4 py-3 text-base font-bold hover:bg-brand-cream"
+                className="rounded-xl px-4 py-3 text-base font-bold hover:bg-page"
               >
                 {item.label}
               </Link>

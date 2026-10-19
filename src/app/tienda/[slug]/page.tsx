@@ -62,11 +62,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   if (result.state === "error") {
     return (
-      <main className="min-h-screen bg-brand-cream text-brand-black">
+      <main className="min-h-screen bg-page text-fg">
         <SiteHeader />
         <section className="mx-auto max-w-2xl px-5 py-20 text-center">
           <h1 className="text-2xl font-bold">No pudimos cargar este producto.</h1>
-          <p className="mt-3 text-brand-black/65">
+          <p className="mt-3 text-fg-muted">
             Estamos teniendo un inconveniente temporal. Recarga en unos minutos o escríbenos por WhatsApp.
           </p>
           <Link href="/tienda" className="mt-6 inline-block font-bold underline">Volver a la tienda</Link>
@@ -80,7 +80,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const jsonLd = buildProductJsonLd(product, variants);
 
   return (
-    <main className="min-h-screen bg-brand-cream text-brand-black">
+    <main className="min-h-screen bg-page text-fg">
       <SiteHeader />
       <script
         type="application/ld+json"
@@ -88,7 +88,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         dangerouslySetInnerHTML={{ __html: jsonLd }}
       />
       <section className="mx-auto max-w-6xl px-5 pb-16 pt-6 sm:px-8 sm:pt-10">
-        <nav aria-label="Ruta de navegación" className="text-sm text-brand-black/65">
+        <nav aria-label="Ruta de navegación" className="text-sm text-fg-muted">
           <ol className="flex flex-wrap gap-2">
             <li><Link href="/tienda" className="hover:underline">Tienda</Link></li>
             {category && (
@@ -109,11 +109,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <div className="flex flex-col gap-6">
             <div>
               {category && (
-                <p className="text-xs font-bold uppercase tracking-widest text-brand-orange">{category.name}</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-fg-accent">{category.name}</p>
               )}
               <h1 className="mt-2 text-4xl font-bold tracking-tight sm:text-5xl">{product.name}</h1>
               {product.description && (
-                <p className="mt-4 whitespace-pre-line text-base leading-7 text-brand-black/75">
+                <p className="mt-4 whitespace-pre-line text-base leading-7 text-fg-muted">
                   {product.description}
                 </p>
               )}
@@ -121,7 +121,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             <OrderPanel productName={product.name} variants={variants} />
 
-            <ul className="grid gap-2 text-sm text-brand-black/75">
+            <ul className="grid gap-2 text-sm text-fg-muted">
               <li>🕯️ Hecha a mano, desde el envase en cemento.</li>
               <li>🌱 Cera vegetal de soya.</li>
               <li>📦 Lo que no está en existencia se fabrica en 14 días.</li>

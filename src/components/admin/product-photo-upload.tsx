@@ -31,7 +31,7 @@ export function ProductPhotoUpload({ productId }: { productId: string }) {
     <input name="alt" aria-label="Descripción accesible de la fotografía"
       placeholder="Descripción de la fotografía" minLength={2} maxLength={200} required
       className="rounded border p-2" />
-    <button disabled={busy} className="rounded bg-[#231F20] p-2 text-white disabled:opacity-40" type="submit">
+    <button disabled={busy} className="rounded bg-inverse p-2 text-on-inverse disabled:opacity-40" type="submit">
       {busy ? "Procesando..." : "Subir fotografía"}
     </button>
     <span role="status">{result}</span>

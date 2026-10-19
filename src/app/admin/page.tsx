@@ -83,24 +83,24 @@ export default async function AdminHomePage({ searchParams }: {
   }
 
   return (
-    <main className="min-h-screen bg-[#F7F1E9] p-6 text-[#231F20] sm:p-10">
+    <main className="min-h-screen bg-page p-6 text-fg sm:p-10">
       <div className="mx-auto max-w-6xl">
-        <p className="text-sm font-semibold uppercase tracking-widest text-[#C86021]">
+        <p className="text-sm font-semibold uppercase tracking-widest text-fg-accent">
           Chusquisimas Admin
         </p>
         <h1 className="mt-3 text-3xl font-bold">Catálogo e inventario</h1>
         {canManageProducts && <section className="mt-7"><h2 className="text-xl font-bold">Añadir producto</h2><CreateProductForm /></section>}
-        <p className="mt-3 text-sm text-[#66584D]">
+        <p className="mt-3 text-sm text-fg-muted">
           Existencias por variante y aroma. Cada ajuste requiere un motivo
           y queda registrado con la identidad del administrador.
         </p>
         <nav className="mt-6 flex flex-wrap gap-3 text-sm">
-          <Link href="/admin" className={`rounded-lg px-4 py-2 ${!showArchived ? "bg-[#231F20] text-white" : "border bg-white"}`}>Catálogo activo y borradores</Link>
-          <Link href="/admin?archived=1" className={`rounded-lg px-4 py-2 ${showArchived ? "bg-[#231F20] text-white" : "border bg-white"}`}>Ver archivados</Link>
+          <Link href="/admin" className={`rounded-lg px-4 py-2 ${!showArchived ? "bg-inverse text-on-inverse" : "border bg-surface"}`}>Catálogo activo y borradores</Link>
+          <Link href="/admin?archived=1" className={`rounded-lg px-4 py-2 ${showArchived ? "bg-inverse text-on-inverse" : "border bg-surface"}`}>Ver archivados</Link>
         </nav>
-        <div className="mt-5 overflow-x-auto rounded-2xl bg-white shadow-sm">
+        <div className="mt-5 overflow-x-auto rounded-2xl bg-surface shadow-sm">
           <table className="w-full text-left text-sm">
-            <thead className="bg-[#F6EADC]">
+            <thead className="bg-panel">
               <tr>
                 <th scope="col" className="p-4">Producto / visibilidad</th>
                 <th scope="col" className="p-4">Variante / aroma</th>
@@ -113,7 +113,7 @@ export default async function AdminHomePage({ searchParams }: {
             <tbody>
               {rows.map((row, index) => (
                 <tr key={`${row.product_id}:${row.variant_id ?? "none"}`}
-                  className="border-t border-[#EDE3D7] align-top">
+                  className="border-t border-line align-top">
                   <td className="p-4">
                     <strong>{row.product_name}</strong>
                     {(index === 0 || rows[index - 1]?.product_id !== row.product_id) && canManageMedia && <>
@@ -124,12 +124,12 @@ export default async function AdminHomePage({ searchParams }: {
                     {index === 0 || rows[index - 1]?.product_id !== row.product_id ? (
                       canManageProducts ? <ProductVisibility id={row.product_id} status={row.product_status} canPublish={row.product_ready === 1} /> : <div className="text-xs">{row.product_status}</div>
                     ) : null}
-                    {(index === 0 || rows[index - 1]?.product_id !== row.product_id) && row.product_status !== "active" && row.product_ready !== 1 && <div className="text-xs text-[#66584D]">Requiere variante activa con precio para publicar</div>}
+                    {(index === 0 || rows[index - 1]?.product_id !== row.product_id) && row.product_status !== "active" && row.product_ready !== 1 && <div className="text-xs text-fg-muted">Requiere variante activa con precio para publicar</div>}
                   </td>
                   <td className="p-4">
                     {row.variant_id ? (
                       <><div>{row.variant_label || row.aroma_name || "Sin presentación"}</div>
-                        <div className="text-xs text-[#66584D]">{row.sku}</div>
+                        <div className="text-xs text-fg-muted">{row.sku}</div>
                         {canEditPrices && row.variant_status && <VariantVisibility id={row.variant_id} status={row.variant_status} hasPrice={row.price_cop !== null} />}</>
                     ) : "Sin variantes registradas"}
                     {(index === 0 || rows[index - 1]?.product_id !== row.product_id) && canManageProducts && <AddVariant productId={row.product_id} productType={row.product_type} aromas={aromas} />}
