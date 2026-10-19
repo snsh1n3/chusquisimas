@@ -53,3 +53,8 @@ next-env.d.ts
 
 # Wrangler dry-run artifacts
 /.wrangler-dryrun/
+
+# graphify: solo se versionan el grafo y el informe; el visor y la caché se regeneran
+/graphify-out/*
+!/graphify-out/graph.json
+!/graphify-out/GRAPH_REPORT.md

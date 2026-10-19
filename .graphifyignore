@@ -1,0 +1,18 @@
+# Exclusiones para Graphify (grafo solo de código de Chusquisimas V2).
+# Graphify ya respeta .gitignore; aquí van los archivos versionados que solo meten ruido.
+
+# Tipos del runtime de Workers generados por `wrangler types` (~1.200 nodos de ruido)
+cloudflare-env.d.ts
+
+# Lockfile de dependencias
+package-lock.json
+
+# Salidas de build y caché (por si existen en local)
+node_modules/
+.next/
+.open-next/
+.wrangler/
+coverage/
+
+# El propio grafo
+graphify-out/
