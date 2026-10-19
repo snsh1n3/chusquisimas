@@ -29,6 +29,17 @@ function variantLabel(v: Pick<VariantRow, "label" | "aroma_name">): string {
   return label || aroma;
 }
 
+/** Aroma y presentación por separado, para el mensaje de pedido. */
+function variantParts(v: Pick<VariantRow, "label" | "aroma_name">): { aroma?: string; presentation?: string } {
+  const label = v.label?.trim() ?? "";
+  const aroma = v.aroma_name?.trim() ?? "";
+  return {
+    ...(aroma ? { aroma } : {}),
+    // En las velas la etiqueta es el mismo aroma: no se repite como presentación.
+    ...(label && label.toLowerCase() !== aroma.toLowerCase() ? { presentation: label } : {}),
+  };
+}
+
 export async function getPublishedCatalog(): Promise<{
   products: CatalogProduct[]; variants: ProductVariant[];
 }> {
@@ -63,7 +74,8 @@ export async function getPublishedCatalog(): Promise<{
     createdAt: p.created_at, updatedAt: p.updated_at,
   }));
   const variants: ProductVariant[] = variantsResult.results.map(v => ({
-    id: v.id, productId: v.product_id, sku: v.sku, label: variantLabel(v), optionSelections: [],
+    id: v.id, productId: v.product_id, sku: v.sku, label: variantLabel(v), ...variantParts(v),
+    optionSelections: [],
     price: { currency: "COP", amount: v.price_cop }, status: v.status,
     imageIds: [],
     fulfillmentPolicies: [

@@ -104,8 +104,12 @@ export interface ProductVariant {
   id: CatalogId;
   productId: CatalogId;
   sku: string;
-  /** Nombre visible de la presentación (p. ej. "Café" o "Combo x3"). */
+  /** Nombre visible de la presentación (p. ej. "Café" o "Combo x3 · Café"). */
   label?: string;
+  /** Aroma de la variante, si tiene. */
+  aroma?: string;
+  /** Presentación sin el aroma (p. ej. "Combo x3"), si es distinta del aroma. */
+  presentation?: string;
   optionSelections: VariantOptionSelection[];
   price: MoneyCOP;
   status: VariantStatus;

@@ -32,6 +32,16 @@ export function clampQuantity(value: number): number {
   return Math.min(MAX_ORDER_QUANTITY, Math.max(1, Math.trunc(value)));
 }
 
+/**
+ * Presentación que se menciona en el pedido. Con aroma, solo si la variante
+ * tiene una presentación propia (p. ej. "Combo x3"); sin aroma, la etiqueta,
+ * salvo la genérica.
+ */
+function orderPresentation(variant: PublicVariant): string | undefined {
+  if (variant.aroma) return variant.presentation;
+  return variant.label && variant.label !== DEFAULT_LABEL ? variant.label : undefined;
+}
+
 export function buildProductOrderUrl(
   productName: string,
   variant: PublicVariant,
@@ -46,7 +56,8 @@ export function buildProductOrderUrl(
   return createOrderWhatsAppUrl([{
     name: productName,
     quantity,
-    presentation: variant.label && variant.label !== DEFAULT_LABEL ? variant.label : undefined,
+    aroma: variant.aroma,
+    presentation: orderPresentation(variant),
     unitPriceCOP: variant.price.amount,
     deliveryMode: variant.availability === "ready_to_ship" ? "ready_stock" : "made_to_order",
   }]);

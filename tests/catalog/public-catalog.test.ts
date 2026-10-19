@@ -128,9 +128,15 @@ describe("etiquetas e imágenes públicas", () => {
         { id: "b", src: "/b", thumbSrc: "/b/t", alt: "B", sortOrder: 1 },
         { id: "a", src: "/a", thumbSrc: "/a/t", alt: "A", sortOrder: 0 },
       ] }],
-      variants: [variant("v", [stock(1)], { label: "  Café  " })],
+      variants: [
+        variant("v", [stock(1)], { label: "  Café  ", aroma: "Café" }),
+        variant("w", [stock(1)], { label: "Combo x3 · Uva", aroma: "Uva", presentation: "Combo x3" }),
+      ],
     });
     assert.equal(catalog.variants[0].label, "Café");
+    assert.equal(catalog.variants[0].aroma, "Café");
+    assert.equal(catalog.variants[0].presentation, undefined);
+    assert.equal(catalog.variants[1].presentation, "Combo x3");
     assert.deepEqual(catalog.products[0].images.map((i) => i.id), ["a", "b"]);
     assert.equal(catalog.products[0].images[0].thumbSrc, "/a/t");
   });

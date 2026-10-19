@@ -7,7 +7,7 @@ import {
 import type { PublicVariant } from "../../src/lib/catalog/public-catalog.ts";
 
 const base: PublicVariant = {
-  id: "v1", productId: "p1", label: "Café",
+  id: "v1", productId: "p1", label: "Café", aroma: "Café",
   price: { currency: "COP", amount: 45000 }, availability: "ready_to_ship",
 };
 
@@ -22,15 +22,30 @@ describe("buildProductOrderUrl", () => {
     assert.equal(host, "wa.me");
     assert.equal(path, "/573168205201");
     assert.match(text, /1\. Gnomo/);
-    assert.match(text, /Presentación: Café/);
+    assert.match(text, /Aroma: Café/);
+    assert.doesNotMatch(text, /Presentación:/, "en velas el aroma no se repite como presentación");
     assert.match(text, /Cantidad: 2/);
     assert.match(text, /Entrega inmediata, sujeto a confirmación/);
     assert.match(text, /90\.000/);
   });
 
+  it("incluye aroma y presentación cuando la variante tiene ambos", () => {
+    const { text } = decode(buildProductOrderUrl("Churras queridas",
+      { ...base, label: "Combo x3 · Lulada", aroma: "Lulada", presentation: "Combo x3" }, 1));
+    assert.match(text, /Aroma: Lulada\n   Presentación: Combo x3/);
+  });
+
+  it("sin aroma usa la presentación (wax melts y kits)", () => {
+    const { text } = decode(buildProductOrderUrl("Kit brujas",
+      { id: "k", productId: "p", label: "Caja grande", price: base.price, availability: "ready_to_ship" }, 1));
+    assert.match(text, /Presentación: Caja grande/);
+    assert.doesNotMatch(text, /Aroma:/);
+  });
+
   it("indica bajo pedido y omite la presentación genérica", () => {
     const { text } = decode(buildProductOrderUrl("Regia",
-      { ...base, label: "Presentación única", availability: "made_to_order", preparationDays: 14 }, 1));
+      { id: "r", productId: "p", label: "Presentación única", price: base.price,
+        availability: "made_to_order", preparationDays: 14 }, 1));
     assert.match(text, /Bajo pedido, preparación en 14 días/);
     assert.doesNotMatch(text, /Presentación:/);
   });

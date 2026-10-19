@@ -25,6 +25,10 @@ export interface PublicVariant {
   productId: CatalogId;
   /** Nombre visible de la presentación o aroma. */
   label: string;
+  /** Aroma, si la variante tiene uno. */
+  aroma?: string;
+  /** Presentación distinta del aroma (p. ej. "Combo x3"), si existe. */
+  presentation?: string;
   price: MoneyCOP;
   availability: PublicAvailability;
   /** Solo presente cuando la variante se fabrica bajo pedido. */
@@ -55,6 +59,8 @@ export function toPublicVariant(variant: ProductVariant): PublicVariant | null {
     id: variant.id,
     productId: variant.productId,
     label: variant.label?.trim() || "Presentación única",
+    ...(variant.aroma ? { aroma: variant.aroma } : {}),
+    ...(variant.presentation ? { presentation: variant.presentation } : {}),
     price: { currency: variant.price.currency, amount: variant.price.amount },
     availability: availability.status,
   };

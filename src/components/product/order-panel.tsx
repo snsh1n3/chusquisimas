@@ -49,7 +49,9 @@ export function OrderPanel({ productName, variants }: { productName: string; var
     <div className="flex flex-col gap-6 rounded-card border border-line bg-surface p-6">
       {variants.length > 1 && (
         <fieldset>
-          <legend className="text-sm font-bold">Presentación</legend>
+          <legend className="text-sm font-bold">
+            {variants.every((variant) => variant.aroma && !variant.presentation) ? "Aroma" : "Presentación"}
+          </legend>
           <div className="mt-3 flex flex-wrap gap-2">
             {variants.map((variant) => {
               const active = variant.id === selected.id;
