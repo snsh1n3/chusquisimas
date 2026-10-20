@@ -47,6 +47,24 @@ jobs:
       - name: Build
         run: npm run build
 
+  smoke:
+    name: Prueba de humo del Worker (OpenNext + wrangler dev)
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Instalar dependencias (lockfile exacto)
+        run: npm ci
+      - name: Build de OpenNext y rutas clave en el runtime local de Workers
+        run: bash scripts/smoke-test.sh
+
   dependency-review:
     name: Revisión de dependencias nuevas
     if: github.event_name == 'pull_request'

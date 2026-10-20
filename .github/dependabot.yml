@@ -20,11 +20,13 @@ updates:
         update-types: ["version-update:semver-major"]
     groups:
       next:
-        patterns: ["next", "eslint-config-next", "@next/*"]
+        # OpenNext va con Next: cada versión de Next puede exigir una de OpenNext
+        # (20-oct-2026: Next 16.4.0 con OpenNext 1.20.9 rompió producción).
+        patterns: ["next", "eslint-config-next", "@next/*", "@opennextjs/cloudflare"]
       react:
         patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
       cloudflare:
-        patterns: ["wrangler", "@opennextjs/cloudflare"]
+        patterns: ["wrangler"]
       tooling:
         patterns: ["typescript", "eslint", "@eslint/*", "tailwindcss", "@tailwindcss/*", "@types/node"]
     commit-message:
