@@ -29,4 +29,11 @@ export const catalogCategories: CatalogCategory[] = [
     description: "Combinaciones de regalos y aromas de Chusquisimas.",
     sortOrder: 4,
   },
+  {
+    id: "cat-pebeteros",
+    slug: "pebeteros",
+    name: "Pebeteros",
+    description: "Quemadores para disfrutar tus wax melts.",
+    sortOrder: 5,
+  },
 ];

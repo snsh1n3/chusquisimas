@@ -15,9 +15,11 @@ import { formatPriceCOP } from "@/types/catalog";
  * Recibe solo variantes públicas (sin existencias). El pedido no se confirma
  * aquí: lo confirma Chusquisimas por WhatsApp.
  */
-export function OrderPanel({ productName, variants, ordersEnabled = false }: {
+export function OrderPanel({ productName, variants, ordersEnabled = false, optionLabel }: {
   productName: string;
   variants: PublicVariant[];
+  /** Nombre del selector de variantes (p. ej. "Color"); por defecto Aroma o Presentación. */
+  optionLabel?: string;
   /** Con pedidos activos el botón principal agrega al carrito. */
   ordersEnabled?: boolean;
 }) {
@@ -58,7 +60,7 @@ export function OrderPanel({ productName, variants, ordersEnabled = false }: {
       {variants.length > 1 && (
         <fieldset>
           <legend className="text-sm font-bold">
-            {variants.every((variant) => variant.aroma && !variant.presentation) ? "Aroma" : "Presentación"}
+            {optionLabel ?? (variants.every((variant) => variant.aroma && !variant.presentation) ? "Aroma" : "Presentación")}
           </legend>
           <div className="mt-3 flex flex-wrap gap-2">
             {variants.map((variant) => {

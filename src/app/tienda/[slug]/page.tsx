@@ -120,7 +120,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
               )}
             </div>
 
-            <OrderPanel productName={product.name} variants={variants} ordersEnabled={ordersEnabled} />
+            <OrderPanel productName={product.name} variants={variants} ordersEnabled={ordersEnabled}
+              optionLabel={product.categoryIds.includes("cat-pebeteros") ? "Color" : undefined} />
 
             <ul className="grid gap-2 text-sm text-fg-muted">
               <li>🕯️ Hecha a mano, desde el envase en cemento.</li>

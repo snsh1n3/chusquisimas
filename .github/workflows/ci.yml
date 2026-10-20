@@ -42,6 +42,8 @@ jobs:
         run: python3 tests/integration/check_safe_delete.py
       - name: RBAC con D1 como fuente única
         run: python3 tests/integration/check_rbac_seed.py
+      - name: Seed de pebeteros (idempotente y cuadrado)
+        run: python3 tests/integration/check_pebeteros_seed.py
       - name: Aislamiento del despliegue
         run: python3 tests/integration/check_deployment_gate.py
       - name: Build

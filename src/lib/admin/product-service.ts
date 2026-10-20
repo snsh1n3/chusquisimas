@@ -123,14 +123,19 @@ export async function editProduct(
     (SELECT 1 FROM admin_audit_log WHERE id=? AND resource_id=store_products.id)
   `).bind(product.name, product.description, product.productType,
     input.id, input.expectedName, auditId);
-  const unlink = db.prepare("DELETE FROM store_product_categories WHERE product_id=?")
-    .bind(input.id);
-  const link = db.prepare("INSERT INTO store_product_categories(product_id,category_id) VALUES(?,?)")
-    .bind(input.id, category);
-  const results = await db.batch([audit, update, unlink, link]);
+  // La categoría solo se recalcula si cambia el tipo: así se conservan las
+  // categorías asignadas aparte del tipo (p. ej. Pebeteros, de tipo «custom»).
+  const typeChanged = `EXISTS (SELECT 1 FROM admin_audit_log WHERE id=?)
+    AND (SELECT product_type FROM store_products WHERE id=?) <> ?`;
+  const unlink = db.prepare(`DELETE FROM store_product_categories WHERE product_id=? AND ${typeChanged}`)
+    .bind(input.id, auditId, input.id, product.productType);
+  const link = db.prepare(`INSERT INTO store_product_categories(product_id,category_id)
+    SELECT ?,? WHERE ${typeChanged}`)
+    .bind(input.id, category, auditId, input.id, product.productType);
+  const results = await db.batch([audit, unlink, link, update]);
   if (results.length !== 4 || !results[0]?.success || results[0].meta.changes !== 1 ||
-      !results[1]?.success || results[1].meta.changes !== 1 ||
-      !results[2]?.success || !results[3]?.success || results[3].meta.changes !== 1) {
+      !results[1]?.success || !results[2]?.success ||
+      !results[3]?.success || results[3].meta.changes !== 1) {
     throw new ProductConflictError("Producto desactualizado. Recarga e inténtalo otra vez.");
   }
 }
