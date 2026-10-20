@@ -3,20 +3,20 @@
  * en /privacidad y de la versión que acepta el cliente al registrar un pedido
  * (PRIVACY_NOTICE_VERSION en order-inputs.ts).
  *
- * BORRADOR: requiere revisión de alguien con criterio legal. Mientras falten
- * los datos del responsable, la página se muestra como borrador y los pedidos
- * en línea no se activan (ver getPublicOrdersConfig).
+ * Datos del responsable confirmados por el negocio el 20-oct-2026. Si se
+ * vacía algún campo, la página vuelve a borrador y los pedidos en línea se
+ * desactivan (ver getPublicOrdersConfig).
  */
 import { PRIVACY_NOTICE_VERSION } from "../orders/order-inputs.ts";
 import { ORDERS_WHATSAPP_NUMBER } from "../orders/whatsapp.ts";
 
 export const PRIVACY_RESPONSIBLE = {
   /** Nombre completo de la persona natural responsable del tratamiento. */
-  name: "",
+  name: "Nicol Barrera",
   /** Ciudad de domicilio del responsable. */
-  city: "",
+  city: "Bogotá",
   /** Correo para consultas y reclamos sobre datos personales. */
-  email: "",
+  email: "pqr@chusquisimas.com",
 } as const;
 
 export function isPrivacyNoticeComplete(responsible: Record<string, string> = PRIVACY_RESPONSIBLE): boolean {

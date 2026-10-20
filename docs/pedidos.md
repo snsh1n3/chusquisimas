@@ -1,7 +1,8 @@
 # Pedidos registrados (fase 1 de pagos)
 
-Estado: **Implementado** (PR #9). Desactivado en producción hasta completar la
-activación.
+Estado: **Implementado** (PR #9). Activado en configuración el 20-oct-2026
+(clave de Turnstile y aviso de privacidad completos); entra en producción con
+el despliegue posterior a la migración y la clave secreta.
 
 ## Qué hace
 
