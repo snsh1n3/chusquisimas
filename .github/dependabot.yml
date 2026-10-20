@@ -1,0 +1,40 @@
+# Actualizaciones automáticas en forma de PR. Ninguna se fusiona sola: cada PR
+# pasa por CI y la decisión de fusionar (que cambia package-lock.json) es manual.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: America/Bogota
+    # Espera 7 días antes de proponer una versión recién publicada: margen para
+    # que se detecten paquetes comprometidos (ataques a la cadena de suministro).
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    groups:
+      next:
+        patterns: ["next", "eslint-config-next", "@next/*"]
+      react:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
+      cloudflare:
+        patterns: ["wrangler", "@opennextjs/cloudflare"]
+      tooling:
+        patterns: ["typescript", "eslint", "@eslint/*", "tailwindcss", "@tailwindcss/*", "@types/node"]
+    commit-message:
+      prefix: "chore(deps)"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+      timezone: America/Bogota
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "chore(ci)"

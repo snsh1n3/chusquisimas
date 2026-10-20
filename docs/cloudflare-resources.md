@@ -1,6 +1,6 @@
-# Cloudflare V2 resources (not deployed)
+# Cloudflare V2 resources
 
-Configuration on the feature branch:
+Bindings declared in `wrangler.jsonc`:
 - D1 binding: `DB` → `chusquisimas-v2-db`
 - R2 binding: `PRODUCT_IMAGES` → `chusquisimas-v2-images` (private)
 - No DNS or production route changes.
@@ -9,7 +9,7 @@ Configuration on the feature branch:
 ## Before running migrations
 
 1. Ensure the correct Cloudflare account, worker, database ID, and R2 bucket have been selected.
-2. Run `npx wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts` from `v2/` and review the generated CloudflareEnv type changes.
+2. Run `npx wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts` from the repository root and review the generated CloudflareEnv type changes.
 3. Test migrations in an isolated *local* D1 instance first, in order:
    - `npx wrangler d1 migrations apply chusquisimas-v2-db --local`
    - `npx wrangler d1 execute chusquisimas-v2-db --local --file=./seeds/initial_catalog.sql`

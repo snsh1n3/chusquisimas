@@ -29,7 +29,7 @@ Revisión de accesibilidad y SEO técnico sobre el código y la página en produ
 | Hallazgo | Decisión |
 |---|---|
 | CSS que bloquea el render (7,1 KiB) y cadena HTML → CSS; el texto del LCP esperaba 740 ms (móvil) y 960 ms (escritorio) | `experimental.inlineCss`: el CSS va dentro del HTML |
-| Legacy JavaScript (14 KiB de polyfills) | Los incluye Next.js; sin acción |
+| Legacy JavaScript (14 KiB de polyfills) | Los incluye Next.js en todos los navegadores (`polyfill-module`). Revisado el 20-oct: el archivo real pesa ~1,4 KB, la auditoría no puntúa y quitarlo exige un alias a un archivo interno de Next que puede romperse en cada actualización y dejar sin soporte a iPhone con iOS 16–17. Se mantiene; el piso de navegadores queda explícito en `browserslist` |
 | JavaScript sin usar (30 KiB) | Parte de React en la carga inicial; sin acción |
 | Tarea larga de 88 ms (hidratación) | Aceptable; sin acción |
 | Tamaño del DOM (96 elementos) | Bien |

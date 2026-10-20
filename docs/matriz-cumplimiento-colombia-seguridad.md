@@ -1,7 +1,8 @@
 # Matriz de cumplimiento y seguridad — Chusquisimas V2
 
 Actualizado: 2026-10-09 · Alcance: tienda pública, administración, WhatsApp y servicios Cloudflare.
-**Situación declarada:** Chusquisimas opera actualmente como persona natural con RUT a nombre de una de sus responsables (la esposa del usuario), mientras se prepara la constitución de la empresa. La existencia del RUT no acredita por sí sola matrícula mercantil, habilitaciones, régimen fiscal ni cumplimiento de facturación.\n**Estado general: NO APROBADO PARA OPERACIÓN COMERCIAL DE V2.**
+**Situación declarada:** Chusquisimas opera actualmente como persona natural con RUT a nombre de una de sus responsables (la esposa del usuario), mientras se prepara la constitución de la empresa. La existencia del RUT no acredita por sí sola matrícula mercantil, habilitaciones, régimen fiscal ni cumplimiento de facturación.
+**Estado general: NO APROBADO PARA OPERACIÓN COMERCIAL DE V2.**
 Este documento es un control de proyecto, no un dictamen legal, certificación OWASP ni auditoría independiente.
 
 ## Estados
@@ -39,7 +40,13 @@ Este documento es un control de proyecto, no un dictamen legal, certificación O
 | OPS-02 | Catálogo | Precios y fotos editables desde UI con autorización y versionamiento/auditoría; productos en draft por defecto. | Prueba end-to-end multiusuario. | Pendiente | Sí |
 | OPS-03 | No publicación | `main`, DNS y web vigente no se modifican hasta autorización explícita y aceptación de controles. | Revisión de diff/infra y aprobación. | Pendiente | Sí |
 
-## Estado jurídico declarado y pendiente de verificar\n- Operación actual: persona natural con RUT a nombre de una responsable del negocio; proyecto de constituir una sociedad posteriormente.\n- La responsable **no tiene matrícula mercantil actualmente**, según confirmación del negocio. Para actividad mercantil habitual, el artículo 19 del Código de Comercio establece la obligación de matrícula del comerciante. Pendiente regularizar la situación según evaluación del caso y del establecimiento, en la Cámara de Comercio competente.\n- Pendiente: verificar si el RUT incluye las actividades correctas para fabricación/comercialización, responsabilidades tributarias, facturación, y la información legal publicable sin exponer datos personales innecesarios.\n- La transición a sociedad requerirá revisar actualización de datos fiscales, facturación, políticas y titularidad de los canales.\n\n## Decisiones de arquitectura
+## Estado jurídico declarado y pendiente de verificar
+- Operación actual: persona natural con RUT a nombre de una responsable del negocio; proyecto de constituir una sociedad posteriormente.
+- La responsable **no tiene matrícula mercantil actualmente**, según confirmación del negocio. Para actividad mercantil habitual, el artículo 19 del Código de Comercio establece la obligación de matrícula del comerciante. Pendiente regularizar la situación según evaluación del caso y del establecimiento, en la Cámara de Comercio competente.
+- Pendiente: verificar si el RUT incluye las actividades correctas para fabricación/comercialización, responsabilidades tributarias, facturación, y la información legal publicable sin exponer datos personales innecesarios.
+- La transición a sociedad requerirá revisar actualización de datos fiscales, facturación, políticas y titularidad de los canales.
+
+## Decisiones de arquitectura
 - Mantener `admin.chusquisimas.com` protegido con Cloudflare Access.
 - Mantener `chusquisimas.com` como tienda pública. Acciones críticas no deben depender solo del aislamiento de DNS.
 - D1 `chusquisimas-v2-db`, R2 privado `chusquisimas-v2-images`: están creados, pero ningún resultado de ejecución remota o migración se presume.
@@ -54,7 +61,9 @@ Un control pasa a `Aprobado` solo al registrar: quién verificó, fecha, prueba/
 - Ley 1480 de 2011, Estatuto del Consumidor: https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=44306
 - Ley 2439 de 2024: https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=257116
 - Ley 1581 de 2012, protección de datos: https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=49981
-- DIAN RUT: https://www.dian.gov.co/impuestos/RUT/Paginas/Inscripcion-y-actualizacion-RUT.aspx\n- Cámara de Comercio de Bogotá, matrícula mercantil: https://www.ccb.org.co/servicios/crea-tu-empresa/constituye-tu-empresa/matriculas\n- Código de Comercio, artículo 19: https://relatoria.colombiacompra.gov.co/normativa/codigo-de-comercio-decreto-410-de-1971/
+- DIAN RUT: https://www.dian.gov.co/impuestos/RUT/Paginas/Inscripcion-y-actualizacion-RUT.aspx
+- Cámara de Comercio de Bogotá, matrícula mercantil: https://www.ccb.org.co/servicios/crea-tu-empresa/constituye-tu-empresa/matriculas
+- Código de Comercio, artículo 19: https://relatoria.colombiacompra.gov.co/normativa/codigo-de-comercio-decreto-410-de-1971/
 - SIC sobre retracto: https://sedeelectronica.sic.gov.co/noticias/se-arrepintio-de-una-compra-y-no-sabe-que-hacer
 - SIC sobre enlace institucional: https://sedeelectronica.sic.gov.co/publicaciones/boletin-juridico/concepto/titulo-obligacion-de-incluir-enlace-la-superindustria-en-plataformas-de-comercio-electronico
 - OWASP ASVS 5.0: https://github.com/OWASP/ASVS/tree/v5.0.0

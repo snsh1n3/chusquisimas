@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint, tipos, pruebas y build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Instalar dependencias (lockfile exacto)
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: TypeScript
+        run: npm run typecheck
+      - name: Pruebas unitarias
+        run: npm test
+      - name: Esquema SQLite local y catálogo inicial
+        run: python3 tests/integration/check_sqlite_schema.py
+      - name: Transacciones administrativas auditadas
+        run: python3 tests/integration/check_admin_transactions.py
+      - name: Eliminación segura de productos archivados
+        run: python3 tests/integration/check_safe_delete.py
+      - name: RBAC con D1 como fuente única
+        run: python3 tests/integration/check_rbac_seed.py
+      - name: Aislamiento del despliegue
+        run: python3 tests/integration/check_deployment_gate.py
+      - name: Build
+        run: npm run build
+
+  dependency-review:
+    name: Revisión de dependencias nuevas
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure

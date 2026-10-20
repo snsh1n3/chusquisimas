@@ -1,0 +1,14 @@
+# Finales de línea LF en el repositorio, también al clonar en Windows.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.woff2 binary
+
+# Generados: sin diff legible y fuera de las estadísticas de lenguajes.
+package-lock.json -diff linguist-generated
+cloudflare-env.d.ts linguist-generated
+graphify-out/** -diff linguist-generated

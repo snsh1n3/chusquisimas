@@ -2,6 +2,7 @@
   "name": "chusquisimas-v2",
   "version": "0.1.0",
   "private": true,
+  "description": "Tienda en línea de Chusquisimas, velas artesanales (Next.js en Cloudflare Workers).",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -31,5 +32,11 @@
     "tailwindcss": "^4",
     "typescript": "^5.7.4",
     "wrangler": "^4.148.0"
-  }
+  },
+  "browserslist": [
+    "chrome 111",
+    "edge 111",
+    "firefox 111",
+    "safari 16.4"
+  ]
 }

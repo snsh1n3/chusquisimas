@@ -1,0 +1,30 @@
+name: Auditoría de dependencias
+
+on:
+  push:
+    branches: [main]
+    paths: ["package.json", "package-lock.json", ".github/workflows/audit.yml", "scripts/audit-report.mjs"]
+  schedule:
+    - cron: "0 13 * * 1" # lunes 8:00 a. m. Bogotá
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+      - name: npm audit (todas las dependencias y solo producción)
+        run: |
+          npm audit --json > audit-full.json || true
+          npm audit --omit=dev --json > audit-prod.json || true
+      - name: Reporte (falla solo con altas o críticas en producción)
+        run: node scripts/audit-report.mjs audit-full.json audit-prod.json
