@@ -24,13 +24,13 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20.19.43",
+    "@types/node": "^26.6.5",
     "@types/react": "^19.1.7",
     "@types/react-dom": "^19.1.7",
-    "eslint": "^9",
+    "eslint": "^10",
     "eslint-config-next": "16.3.8",
     "tailwindcss": "^4",
-    "typescript": "^5.7.4",
+    "typescript": "^7.0.2",
     "wrangler": "^4.148.0"
   },
   "browserslist": [
