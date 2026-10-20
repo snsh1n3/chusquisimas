@@ -7,8 +7,7 @@ import { ValidationError } from "../../src/lib/observability/errors.ts";
 
 const valid = {
   items: [{ variantId: "variant-1", quantity: 2 }],
-  customer: { name: "  Ana   Pérez ", phone: "300 123 4567", city: "Bogotá D.C." },
-  shippingZone: "local",
+  customer: { name: "  Ana   Pérez ", phone: "300 123 4567", country: "CO", department: "Bogotá D.C.", city: "Bogotá D.C." },
   privacyConsent: true,
 };
 
@@ -20,14 +19,29 @@ test("normaliza y acepta un pedido válido", () => {
   assert.equal(order.shippingZone, "local");
 });
 
+test("fuera de Bogotá el envío es nacional y se guarda municipio y departamento", () => {
+  const order = validateOrderInput({ ...valid, shippingZone: "local",
+    customer: { ...valid.customer, department: "Antioquia", city: "Medellín" } });
+  assert.equal(order.customer.city, "Medellín, Antioquia");
+  assert.equal(order.shippingZone, "national");
+});
+
+test("solo acepta municipios de la lista y país Colombia", () => {
+  for (const customer of [
+    { ...valid.customer, department: "Antioquia", city: "Bogotá D.C." },
+    { ...valid.customer, department: "Cundinamarca", city: "Bogotá" },
+    { ...valid.customer, department: "Antioquia", city: "Springfield" },
+    { ...valid.customer, country: "PE" },
+  ]) {
+    assert.throws(() => validateOrderInput({ ...valid, customer }), ValidationError, JSON.stringify(customer));
+  }
+});
+
 test("exige la autorización de datos", () => {
   assert.throws(() => validateOrderInput({ ...valid, privacyConsent: false }), /autorizar/);
   assert.throws(() => validateOrderInput({ ...valid, privacyConsent: "true" }), ValidationError);
 });
 
-test("solo acepta envío local o nacional", () => {
-  assert.throws(() => validateOrderInput({ ...valid, shippingZone: "internacional" }), ValidationError);
-});
 
 test("celulares colombianos en varios formatos", () => {
   assert.equal(normalizeColombianMobile("+57 316 820 5201"), "+573168205201");

@@ -72,7 +72,7 @@ VARIANT=$(npx wrangler d1 execute chusquisimas-v2-db --local --json \
   --command "SELECT id FROM store_variants ORDER BY id LIMIT 1" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s)[0].results[0].id))')
 npx wrangler d1 execute chusquisimas-v2-db --local --command \
   "UPDATE store_variants SET status='active', price_cop=45000, on_hand=3 WHERE id='$VARIANT'; UPDATE store_products SET status='active' WHERE id=(SELECT product_id FROM store_variants WHERE id='$VARIANT')" >/dev/null
-ORDER='{"items":[{"variantId":"'"$VARIANT"'","quantity":2}],"customer":{"name":"Prueba Humo","phone":"3001234567","city":"Bogotá"},"shippingZone":"local","privacyConsent":true,"turnstileToken":"XXXX.DUMMY.TOKEN.XXXX"}'
+ORDER='{"items":[{"variantId":"'"$VARIANT"'","quantity":2}],"customer":{"name":"Prueba Humo","phone":"3001234567","country":"CO","department":"Bogotá D.C.","city":"Bogotá D.C."},"privacyConsent":true,"turnstileToken":"XXXX.DUMMY.TOKEN.XXXX"}'
 post /api/orders "${SMOKE_EXPECT_ORDER:-201}" "$ORDER"
 if [[ "${SMOKE_EXPECT_ORDER:-201}" == "201" ]]; then
   grep -q '"code":"CH-' /tmp/smoke-body.json && echo "OK   pedido $(grep -o 'CH-[A-Z0-9]*' /tmp/smoke-body.json | head -1)" || { echo "FAIL respuesta sin código"; fail=1; }

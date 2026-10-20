@@ -14,6 +14,11 @@ el despliegue posterior a la migración y la clave secreta.
 - **Reserva:** las líneas de entrega inmediata apartan unidades
   (`store_variants.reserved`) en la misma transacción. Si no alcanzan, la línea
   pasa a bajo pedido; si el producto no se fabrica, se rechaza.
+- **Ubicación y envío:** país (solo Colombia), departamento y municipio salen
+  de listas (`src/data/colombia/municipalities.ts`, 1.104 municipios). Bogotá D.C.
+  es envío local y el resto, nacional. El servidor decide la zona según el
+  municipio y no acepta la que mande el navegador. En el pedido se guarda
+  «Municipio, Departamento».
 - **WhatsApp:** la confirmación abre WhatsApp con el número, las líneas, el envío
   y el total. La dirección y el pago se acuerdan ahí.
 - **Panel (`/admin/pedidos`):** lista con filtros, detalle, cambios de estado y

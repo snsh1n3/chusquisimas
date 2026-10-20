@@ -6,6 +6,7 @@
  * Precios, nombres y disponibilidad se leen siempre de D1 en el servidor.
  */
 import { ValidationError } from "../observability/errors.ts";
+import { BOGOTA, COUNTRY, isColombianCity } from "../../data/colombia/municipalities.ts";
 
 export const MAX_ORDER_LINES = 20;
 export const MAX_LINE_QUANTITY = 20;
@@ -24,7 +25,17 @@ export interface OrderLineInput {
 export interface CustomerInput {
   name: string;
   phone: string;
+  /** "Municipio, Departamento" (o "Bogotá D.C."), tal como se guarda en el pedido. */
   city: string;
+}
+
+/** Bogotá es envío local; cualquier otro municipio de Colombia, nacional. */
+export function shippingZoneForCity(department: string): ShippingZone {
+  return department === BOGOTA ? "local" : "national";
+}
+
+export function formatCustomerCity(department: string, city: string): string {
+  return department === BOGOTA ? BOGOTA : `${city}, ${department}`;
 }
 
 export interface OrderInput {
@@ -105,23 +116,27 @@ export function validateOrderInput(value: unknown): OrderInput {
     throw new ValidationError("privacy_consent_missing",
       "Para registrar el pedido debes autorizar el tratamiento de tus datos.");
   }
-  if (typeof body.shippingZone !== "string" ||
-      !(SHIPPING_ZONES as readonly string[]).includes(body.shippingZone)) {
-    throw new ValidationError("shipping_zone_invalid", "Elige el tipo de envío.");
-  }
   const customer = body.customer;
   if (!customer || typeof customer !== "object") {
     throw new ValidationError("customer_invalid", "Revisa los datos del formulario.");
   }
   const c = customer as Record<string, unknown>;
+  if (c.country !== COUNTRY.code) {
+    throw new ValidationError("customer_country_invalid", "Por ahora solo enviamos dentro de Colombia.");
+  }
+  if (typeof c.department !== "string" || typeof c.city !== "string" ||
+      !isColombianCity(c.department, c.city)) {
+    throw new ValidationError("customer_city_invalid", "Elige el departamento y el municipio de la lista.");
+  }
   return {
     items: validateOrderLines(body.items),
     customer: {
       name: cleanText(c.name, "customer_name", 2, 80),
       phone: normalizeColombianMobile(c.phone),
-      city: cleanText(c.city, "customer_city", 2, 60),
+      city: formatCustomerCity(c.department, c.city),
     },
-    shippingZone: body.shippingZone as ShippingZone,
+    // La zona la decide el servidor según el municipio, no el navegador.
+    shippingZone: shippingZoneForCity(c.department),
   };
 }
 

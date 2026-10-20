@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent, type InputHTMLAttributes, type RefObject } from "react";
 import { cartUnits, clearCart, removeFromCart, setCartQuantity } from "@/lib/cart/cart-store";
 import type { CartQuote, QuoteLine } from "@/lib/orders/cart-quote";
-import { MAX_LINE_QUANTITY, type ShippingZone } from "@/lib/orders/order-inputs";
+import { MAX_LINE_QUANTITY, shippingZoneForCity } from "@/lib/orders/order-inputs";
+import { BOGOTA, COLOMBIA_DEPARTMENTS, COUNTRY } from "@/data/colombia/municipalities";
 import type { CreatedOrderLine } from "@/lib/orders/order-service";
 import { formatPriceCOP } from "@/types/catalog";
 import { TurnstileWidget, type TurnstileHandle } from "./turnstile-widget";
@@ -37,7 +38,8 @@ export function CartView({ turnstileSiteKey }: { turnstileSiteKey: string }) {
   const variantKey = cart.map((line) => line.variantId).sort().join(",");
   const [quoteState, setQuoteState] = useState<QuoteState>({ status: "loading" });
   const [removedNotice, setRemovedNotice] = useState(false);
-  const [zone, setZone] = useState<ShippingZone | null>(null);
+  const [department, setDepartment] = useState("");
+  const [city, setCity] = useState("");
   const [token, setToken] = useState<string | null>(null);
   const [turnstileError, setTurnstileError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -111,14 +113,17 @@ export function CartView({ turnstileSiteKey }: { turnstileSiteKey: string }) {
   });
   const subtotal = lines.reduce((sum, line) => sum + line.unitPriceCOP * line.quantity, 0);
   const zones = quoteState.quote.shippingZones;
+  // El envío se elige solo según el municipio; el servidor aplica la misma regla.
+  const zone = department ? shippingZoneForCity(department) : null;
   const selectedZone = zones.find((candidate) => candidate.id === zone) ?? null;
+  const cities = COLOMBIA_DEPARTMENTS.find((item) => item.name === department)?.cities ?? [];
   const pending = quoteState.key !== variantKey;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     const form = new FormData(event.currentTarget);
-    if (!zone) { setError("Elige el tipo de envío."); return; }
+    if (!department || !city) { setError("Elige el departamento y el municipio."); return; }
     if (!token) { setError("Completa la verificación de seguridad."); return; }
     setSubmitting(true);
     try {
@@ -127,8 +132,9 @@ export function CartView({ turnstileSiteKey }: { turnstileSiteKey: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: cart,
-          shippingZone: zone,
-          customer: { name: form.get("name"), phone: form.get("phone"), city: form.get("city") },
+          customer: {
+            name: form.get("name"), phone: form.get("phone"), country: COUNTRY.code, department, city,
+          },
           privacyConsent: form.get("privacy") === "on",
           turnstileToken: token,
         }),
@@ -196,32 +202,61 @@ export function CartView({ turnstileSiteKey }: { turnstileSiteKey: string }) {
         aria-labelledby="checkout-title">
         <h2 id="checkout-title" className="text-xl font-bold">Tus datos</h2>
 
-        <fieldset className="flex flex-col gap-2">
-          <legend className="mb-2 text-sm font-bold">Envío</legend>
-          {zones.map((option) => (
-            <label key={option.id}
-              className="flex cursor-pointer items-center justify-between gap-3 rounded-control border border-line-control px-4 py-3 has-checked:border-line-strong has-checked:bg-page has-[input:focus-visible]:outline-3 has-[input:focus-visible]:outline-focus">
-              <span className="flex items-center gap-3">
-                <input type="radio" name="zone" value={option.id} checked={zone === option.id}
-                  onChange={() => setZone(option.id)} className="accent-current" required />
-                <span className="font-bold">{option.label}</span>
-              </span>
-              <span className="text-sm">{option.priceCOP === null ? "Por confirmar" : formatPriceCOP(option.priceCOP)}</span>
-            </label>
-          ))}
-        </fieldset>
-
         <Field id="name" label="Nombre" autoComplete="name" minLength={2} maxLength={80} />
         <Field id="phone" label="WhatsApp" autoComplete="tel-national" inputMode="tel"
           placeholder="300 123 4567" hint="Celular de Colombia. Te escribimos para confirmar." maxLength={20} />
-        <Field id="city" label="Ciudad" autoComplete="address-level2" minLength={2} maxLength={60} />
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="country" className="text-sm font-bold">País</label>
+          <select id="country" value={COUNTRY.code} disabled
+            className="h-11 rounded-control border border-line-control bg-page px-3">
+            <option value={COUNTRY.code}>{COUNTRY.name}</option>
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="department" className="text-sm font-bold">Departamento</label>
+          <select id="department" required value={department}
+            onChange={(e) => { setDepartment(e.target.value); setCity(e.target.value === BOGOTA ? BOGOTA : ""); }}
+            className="h-11 rounded-control border border-line-control bg-surface px-3">
+            <option value="" disabled>Elige el departamento</option>
+            {COLOMBIA_DEPARTMENTS.map((item) => <option key={item.name} value={item.name}>{item.name}</option>)}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="city" className="text-sm font-bold">Municipio</label>
+          <select id="city" required value={city} disabled={!department}
+            onChange={(e) => setCity(e.target.value)}
+            className="h-11 rounded-control border border-line-control bg-surface px-3 disabled:bg-page">
+            <option value="" disabled>{department ? "Elige el municipio" : "Primero elige el departamento"}</option>
+            {cities.map((name) => <option key={name} value={name}>{name}</option>)}
+          </select>
+        </div>
+
+        <fieldset className="flex flex-col gap-2" aria-describedby="zone-hint">
+          <legend className="mb-2 text-sm font-bold">Envío</legend>
+          {zones.map((option) => (
+            <div key={option.id}
+              className={`flex items-center justify-between gap-3 rounded-control border px-4 py-3 ${
+                zone === option.id ? "border-line-strong bg-page" : "border-line text-fg-muted"}`}>
+              <span className="flex items-center gap-3">
+                <input type="radio" name="zone" value={option.id} checked={zone === option.id} readOnly disabled
+                  aria-label={option.label} className="accent-current" />
+                <span className="font-bold">{option.label}</span>
+              </span>
+              <span className="text-sm">{option.priceCOP === null ? "Por confirmar" : formatPriceCOP(option.priceCOP)}</span>
+            </div>
+          ))}
+          <p id="zone-hint" className="text-xs text-fg-muted">
+            Se elige según el municipio: Bogotá es envío local; el resto de Colombia, nacional.
+          </p>
+        </fieldset>
 
         <dl className="flex flex-col gap-2 border-t border-line pt-4 text-sm">
           <div className="flex justify-between"><dt>Productos</dt><dd className="font-bold">{formatPriceCOP(subtotal)}</dd></div>
           <div className="flex justify-between">
             <dt>{selectedZone?.label ?? "Envío"}</dt>
             <dd className="font-bold">
-              {!selectedZone ? "Elige el envío" : selectedZone.priceCOP === null ? "Por confirmar" : formatPriceCOP(selectedZone.priceCOP)}
+              {!selectedZone ? "Elige el municipio" : selectedZone.priceCOP === null ? "Por confirmar" : formatPriceCOP(selectedZone.priceCOP)}
             </dd>
           </div>
           <div className="flex justify-between text-base">
