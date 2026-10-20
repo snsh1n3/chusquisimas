@@ -131,9 +131,16 @@ const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
 /** Código público del pedido, aleatorio y no consecutivo (p. ej. CH-7K3P9Q). */
 export function generateOrderCode(random: (bytes: Uint8Array) => Uint8Array =
   (bytes) => crypto.getRandomValues(bytes)): string {
-  const bytes = random(new Uint8Array(6));
+  // Muestreo por rechazo: solo se usan bytes por debajo del mayor múltiplo del
+  // alfabeto (248 = 31 × 8), así cada carácter tiene la misma probabilidad.
+  const limit = 256 - (256 % CODE_ALPHABET.length);
   let code = "";
-  for (const byte of bytes) code += CODE_ALPHABET[byte % CODE_ALPHABET.length];
+  while (code.length < 6) {
+    for (const byte of random(new Uint8Array(16))) {
+      if (byte < limit) code += CODE_ALPHABET.charAt(byte % CODE_ALPHABET.length);
+      if (code.length === 6) break;
+    }
+  }
   return `CH-${code}`;
 }
 

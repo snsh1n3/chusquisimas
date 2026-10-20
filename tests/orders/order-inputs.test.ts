@@ -63,4 +63,7 @@ test("el código de pedido es corto, legible y aleatorio", () => {
   assert.ok(codes.size > 195);
   for (const code of codes) assert.match(code, ORDER_CODE_PATTERN);
   assert.equal(generateOrderCode((bytes) => bytes.fill(0)), "CH-222222");
+  // Bytes >= 248 se descartan (evita sesgo); el siguiente válido se usa.
+  let calls = 0;
+  assert.equal(generateOrderCode((bytes) => bytes.fill(calls++ === 0 ? 250 : 1)), "CH-333333");
 });
