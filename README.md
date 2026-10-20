@@ -73,9 +73,16 @@ CI ejecuta todo lo anterior en cada push a `main` y en cada pull request.
 El despliegue es manual desde un equipo autorizado:
 
 ```bash
-npx opennextjs-cloudflare build
+git pull
+npm ci                          # siempre: instala exactamente lo del lockfile
+npm ls next                     # confirma la versión que pasó CI
+npx opennextjs-cloudflare build # verifica "Next.js version" en la salida
 npx opennextjs-cloudflare deploy
 ```
+
+No omitas `npm ci`: un `node_modules` viejo genera un Worker distinto del que
+pasó CI (incidente del 20-oct-2026: se desplegó Next 16.4.0 aunque el código
+pedía 16.3.8).
 
 Despliega solo commits con CI en verde, incluida la **prueba de humo del
 Worker**, que arma el Worker con OpenNext y prueba las rutas en el runtime de
