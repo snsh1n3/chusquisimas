@@ -39,6 +39,9 @@ check /             200
 check /tienda       200
 check /robots.txt   200
 check /sitemap.xml  200
+check /favicon.ico  200
+check /icon.svg     200
+check /apple-icon.png 200
 check /no-existe    404
 # Sin JWT de Access el panel debe negar (404/403/401), nunca fallar con 500.
 check /admin        401,403,404 admin.chusquisimas.com
