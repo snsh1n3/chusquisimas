@@ -77,6 +77,18 @@ npx opennextjs-cloudflare build
 npx opennextjs-cloudflare deploy
 ```
 
+Despliega solo commits con CI en verde, incluida la **prueba de humo del
+Worker**, que arma el Worker con OpenNext y prueba las rutas en el runtime de
+Workers. `next build` por sí solo no detecta incompatibilidades entre Next y
+OpenNext: así se rompió producción el 20-oct-2026 con Next 16.4.0.
+
+Si un despliegue falla (error 1101 o 500), vuelve de inmediato a la versión
+anterior y luego revisa Observability → Events en Cloudflare:
+
+```bash
+npx wrangler rollback --message "motivo"
+```
+
 El Worker se llama `chusquisimas-v2` y conserva sus dominios. Las migraciones
 remotas de D1 nunca se ejecutan automáticamente: se aplican a mano después de
 respaldar la base (`npx wrangler d1 export chusquisimas-v2-db --remote --output=respaldo.sql`).
