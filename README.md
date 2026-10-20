@@ -12,7 +12,7 @@ Tienda en línea de **Chusquisimas**, velas artesanales hechas a mano en Colombi
 
 | Capa | Tecnología |
 |---|---|
-| Aplicación | Next.js 16 (App Router, Turbopack), React 19, TypeScript estricto |
+| Aplicación | Next.js 16 (App Router, Turbopack), React 19 con React Compiler, TypeScript estricto |
 | Estilos | Tailwind CSS 4 con tokens semánticos ([docs/design-tokens.md](docs/design-tokens.md)) |
 | Ejecución | Cloudflare Workers mediante OpenNext (`@opennextjs/cloudflare`) |
 | Datos | Cloudflare D1 (catálogo, inventario, usuarios del panel, auditoría) |
