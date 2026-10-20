@@ -1,5 +1,7 @@
 "use client";
+import Link from "next/link";
 import { useMemo, useState } from "react";
+import { addToCart } from "@/lib/cart/cart-store";
 
 import type { PublicVariant } from "@/lib/catalog/public-catalog";
 import {
@@ -13,10 +15,16 @@ import { formatPriceCOP } from "@/types/catalog";
  * Recibe solo variantes públicas (sin existencias). El pedido no se confirma
  * aquí: lo confirma Chusquisimas por WhatsApp.
  */
-export function OrderPanel({ productName, variants }: { productName: string; variants: PublicVariant[] }) {
+export function OrderPanel({ productName, variants, ordersEnabled = false }: {
+  productName: string;
+  variants: PublicVariant[];
+  /** Con pedidos activos el botón principal agrega al carrito. */
+  ordersEnabled?: boolean;
+}) {
   const initial = variants.find(isOrderable) ?? variants[0];
   const [selectedId, setSelectedId] = useState(initial?.id);
   const [quantity, setQuantity] = useState(1);
+  const [added, setAdded] = useState<"idle" | "added" | "full">("idle");
 
   const selected = variants.find((variant) => variant.id === selectedId) ?? initial;
   const orderUrl = useMemo(() => {
@@ -99,17 +107,44 @@ export function OrderPanel({ productName, variants }: { productName: string; var
             </div>
           </div>
 
-          {orderUrl && (
-            <a href={orderUrl} target="_blank" rel="noopener noreferrer"
-              className="rounded-full bg-action px-6 py-4 text-center text-base font-bold text-on-action transition hover:bg-action-hover hover:text-on-action-hover">
-              Pedir por WhatsApp
-              <span className="sr-only"> (se abre WhatsApp)</span>
-            </a>
+          {ordersEnabled ? (
+            <>
+              <button type="button"
+                onClick={() => setAdded(addToCart(selected.id, quantity) ? "added" : "full")}
+                className="rounded-full bg-action px-6 py-4 text-center text-base font-bold text-on-action transition hover:bg-action-hover hover:text-on-action-hover">
+                Agregar al carrito
+              </button>
+              <p role="status" className="min-h-5 text-sm font-bold">
+                {added === "added" && (
+                  <>Agregado. <Link href="/carrito" className="text-fg-accent underline underline-offset-4">Ver carrito</Link></>
+                )}
+                {added === "full" && "Tu carrito ya tiene el máximo de productos."}
+              </p>
+              <a href={inquiryUrl} target="_blank" rel="noopener noreferrer"
+                className="rounded-full border border-line-strong px-6 py-3 text-center text-sm font-bold">
+                Consultar por WhatsApp
+                <span className="sr-only"> (se abre WhatsApp)</span>
+              </a>
+              <p className="text-xs leading-5 text-fg-muted">
+                Registras tu pedido aquí y lo confirmamos contigo por WhatsApp junto con
+                la dirección y el medio de pago; nada se cobra desde la página.
+              </p>
+            </>
+          ) : (
+            <>
+              {orderUrl && (
+                <a href={orderUrl} target="_blank" rel="noopener noreferrer"
+                  className="rounded-full bg-action px-6 py-4 text-center text-base font-bold text-on-action transition hover:bg-action-hover hover:text-on-action-hover">
+                  Pedir por WhatsApp
+                  <span className="sr-only"> (se abre WhatsApp)</span>
+                </a>
+              )}
+              <p className="text-xs leading-5 text-fg-muted">
+                Te abrimos WhatsApp con tu pedido listo. Lo confirmamos contigo junto con
+                el envío y el medio de pago; nada se cobra desde la página.
+              </p>
+            </>
           )}
-          <p className="text-xs leading-5 text-fg-muted">
-            Te abrimos WhatsApp con tu pedido listo. Lo confirmamos contigo junto con
-            el envío y el medio de pago; nada se cobra desde la página.
-          </p>
         </>
       ) : (
         <a href={inquiryUrl} target="_blank" rel="noopener noreferrer"

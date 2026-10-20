@@ -97,7 +97,7 @@ directamente con el proveedor al momento de decidir:
 | Fase | Alcance | Requisitos |
 |---|---|---|
 | 0 (actual) | Pedido por WhatsApp sin cobro en línea | — |
-| 1 | Pedido registrado en D1 con número, reserva de unidades y aviso por WhatsApp | Tablas `orders`/`order_items`, panel de pedidos |
+| 1 | Pedido registrado en D1 con número, reserva de unidades y aviso por WhatsApp | **Implementada** (ver [pedidos.md](pedidos.md)) |
 | 2 | Link de pago del proveedor enviado por el negocio | Proveedor elegido, `LEG-01`, `LEG-04` a `LEG-08` |
 | 3 | Checkout integrado con webhook | Fases 1 y 2, entorno de pruebas, `SEC-*` aprobados |
 

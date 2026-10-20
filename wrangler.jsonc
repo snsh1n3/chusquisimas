@@ -45,8 +45,20 @@
 	],
 	"vars": {
 		"ACCESS_TEAM_DOMAIN": "jfcastill0.cloudflareaccess.com",
-		"ACCESS_AUD": "9099bcfe511397e805c3c26d00b8b5acc878c8dc8e5da3fb4d92e559e1515e12"
+		"ACCESS_AUD": "9099bcfe511397e805c3c26d00b8b5acc878c8dc8e5da3fb4d92e559e1515e12",
+		// Carrito y pedidos registrados. Solo se activan con "true" Y una clave de
+		// Turnstile; la clave secreta va con `wrangler secret put TURNSTILE_SECRET_KEY`.
+		"ORDERS_ENABLED": "false",
+		"TURNSTILE_SITE_KEY": ""
 	},
+	// Límite de pedidos por IP en /api/orders (5 por minuto).
+	"ratelimits": [
+		{
+			"name": "ORDER_RATE_LIMITER",
+			"namespace_id": "1001",
+			"simple": { "limit": 5, "period": 60 }
+		}
+	],
 	"observability": {
 		"enabled": true
 	},

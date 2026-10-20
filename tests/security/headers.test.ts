@@ -75,11 +75,13 @@ describe("buildCsp", () => {
 describe("orígenes externos permitidos", () => {
   const csp = buildCsp({ frameAncestors: "'self'" });
 
-  it("permite solo el beacon de Cloudflare Web Analytics", () => {
-    assert.match(csp, /script-src 'self' 'unsafe-inline' https:\/\/static\.cloudflareinsights\.com;/);
-    assert.match(csp, /connect-src 'self' https:\/\/cloudflareinsights\.com;/);
+  it("permite solo Web Analytics y Turnstile de Cloudflare", () => {
+    assert.match(csp, /script-src 'self' 'unsafe-inline' https:\/\/static\.cloudflareinsights\.com https:\/\/challenges\.cloudflare\.com;/);
+    assert.match(csp, /connect-src 'self' https:\/\/cloudflareinsights\.com https:\/\/challenges\.cloudflare\.com;/);
+    assert.match(csp, /frame-src https:\/\/challenges\.cloudflare\.com;/);
     const external = csp.match(/https:\/\/[^\s;]+/g) ?? [];
     assert.deepEqual([...new Set(external)].sort(),
-      ["https://cloudflareinsights.com", "https://static.cloudflareinsights.com"]);
+      ["https://challenges.cloudflare.com", "https://cloudflareinsights.com",
+        "https://static.cloudflareinsights.com"]);
   });
 });

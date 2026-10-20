@@ -36,18 +36,21 @@ type CspDirectives = Record<string, readonly string[]>;
 
 export const CLOUDFLARE_INSIGHTS_SCRIPT = "https://static.cloudflareinsights.com";
 export const CLOUDFLARE_INSIGHTS_CONNECT = "https://cloudflareinsights.com";
+/** Turnstile (formulario de pedido): script, iframe del desafío y sus llamadas. */
+export const CLOUDFLARE_TURNSTILE = "https://challenges.cloudflare.com";
 
 const BASE_CSP: CspDirectives = {
   "default-src": ["'self'"],
   // Next.js inyecta scripts inline para hidratación; sin nonces todavía.
   // Cloudflare Web Analytics inyecta su beacon en la zona (reporte del 12-oct-2026).
-  "script-src": ["'self'", "'unsafe-inline'", CLOUDFLARE_INSIGHTS_SCRIPT],
+  "script-src": ["'self'", "'unsafe-inline'", CLOUDFLARE_INSIGHTS_SCRIPT, CLOUDFLARE_TURNSTILE],
   "style-src": ["'self'", "'unsafe-inline'"],
   "img-src": ["'self'", "data:", "blob:"],
   // Quicksand se sirve desde el propio dominio con next/font.
   "font-src": ["'self'"],
   // El beacon envía las métricas de Web Analytics a este origen.
-  "connect-src": ["'self'", CLOUDFLARE_INSIGHTS_CONNECT],
+  "connect-src": ["'self'", CLOUDFLARE_INSIGHTS_CONNECT, CLOUDFLARE_TURNSTILE],
+  "frame-src": [CLOUDFLARE_TURNSTILE],
   "object-src": ["'none'"],
   "base-uri": ["'self'"],
   "form-action": ["'self'"],

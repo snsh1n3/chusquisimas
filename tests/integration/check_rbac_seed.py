@@ -28,9 +28,11 @@ assert "ROLE_PERMISSIONS" not in source, "role matrix must live only in D1 (admi
 
 EXPECTED = {
     "administrator": {"catalog.read", "catalog.write", "inventory.write", "media.write",
-                      "audit.read", "users.manage", "permissions.manage"},
-    "manager": {"catalog.read", "catalog.write", "inventory.write", "media.write", "audit.read"},
-    "inventory": {"catalog.read", "inventory.write", "audit.read"},
+                      "audit.read", "users.manage", "permissions.manage",
+                      "orders.read", "orders.write"},
+    "manager": {"catalog.read", "catalog.write", "inventory.write", "media.write", "audit.read",
+                "orders.read", "orders.write"},
+    "inventory": {"catalog.read", "inventory.write", "audit.read", "orders.read"},
     "viewer": {"catalog.read", "audit.read"},
 }
 actual: dict[str, set[str]] = {}

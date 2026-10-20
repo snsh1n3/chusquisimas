@@ -115,6 +115,7 @@ respaldar la base (`npx wrangler d1 export chusquisimas-v2-db --remote --output=
 | [observabilidad.md](docs/observabilidad.md) | Eventos, categorías de error y consultas en Workers Logs |
 | [web-quality.md](docs/web-quality.md) | Accesibilidad, SEO y Lighthouse |
 | [design-tokens.md](docs/design-tokens.md) | Tokens de diseño y reglas de uso |
+| [pedidos.md](docs/pedidos.md) | Carrito, pedidos registrados, estados, permisos y activación |
 | [pagos-arquitectura.md](docs/pagos-arquitectura.md) | Arquitectura propuesta para la pasarela de pagos |
 | [matriz-cumplimiento-colombia-seguridad.md](docs/matriz-cumplimiento-colombia-seguridad.md) | Controles legales y de seguridad antes de vender en línea |
 | [cloudflare-resources.md](docs/cloudflare-resources.md) | Recursos y bindings de Cloudflare |
