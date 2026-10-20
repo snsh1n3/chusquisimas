@@ -1,0 +1,38 @@
+name: Sincronizar lockfile
+
+# Regenera package-lock.json a partir de package.json en una rama de trabajo
+# (nunca en main) y lo sube como commit. Sirve cuando el cambio de dependencias
+# ya fue aprobado y se prepara desde un entorno sin npm. Luego la rama pasa por
+# CI en un pull request antes de fusionarse.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Resolver dependencias sin instalar ni ejecutar scripts
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Subir el lockfile actualizado
+        run: |
+          if git diff --quiet -- package-lock.json; then
+            echo "El lockfile ya estaba sincronizado."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "chore(deps): sincronizar package-lock.json"
+          git push
