@@ -11,6 +11,7 @@ import { getPublicProductBySlug } from "@/lib/catalog/d1-published";
 import { buildProductJsonLd, productDescription, SITE_URL } from "@/lib/catalog/product-seo";
 import { createLogger, describeError } from "@/lib/observability/logger";
 import { OPEN_GRAPH_DEFAULTS } from "@/lib/site";
+import { getPublicOrdersConfig } from "@/lib/orders/runtime";
 
 export const dynamic = "force-dynamic";
 
@@ -76,6 +77,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   }
 
   const { product, variants } = result.data;
+  const { enabled: ordersEnabled } = await getPublicOrdersConfig();
   const category = getCatalogCategories().find((item) => product.categoryIds.includes(item.id));
   const jsonLd = buildProductJsonLd(product, variants);
 
@@ -118,7 +120,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               )}
             </div>
 
-            <OrderPanel productName={product.name} variants={variants} />
+            <OrderPanel productName={product.name} variants={variants} ordersEnabled={ordersEnabled} />
 
             <ul className="grid gap-2 text-sm text-fg-muted">
               <li>🕯️ Hecha a mano, desde el envase en cemento.</li>

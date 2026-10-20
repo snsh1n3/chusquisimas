@@ -1,0 +1,6 @@
+# Copia este archivo como .dev.vars para desarrollo local (nunca se versiona).
+# Claves de PRUEBA de Turnstile: siempre aprueban. No sirven en producción.
+# https://developers.cloudflare.com/turnstile/troubleshooting/testing/
+ORDERS_ENABLED=true
+TURNSTILE_SITE_KEY=1x00000000000000000000AA
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA

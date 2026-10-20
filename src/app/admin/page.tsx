@@ -88,6 +88,10 @@ export default async function AdminHomePage({ searchParams }: {
         <p className="text-sm font-semibold uppercase tracking-widest text-fg-accent">
           Chusquisimas Admin
         </p>
+        <nav aria-label="Secciones del panel" className="mt-3 flex gap-4 text-sm font-bold">
+          <span aria-current="page" className="border-b-2 border-line-strong pb-1">Catálogo</span>
+          <Link href="/admin/pedidos" className="pb-1 text-fg-muted hover:text-fg">Pedidos</Link>
+        </nav>
         <h1 className="mt-3 text-3xl font-bold">Catálogo e inventario</h1>
         {canManageProducts && <section className="mt-7"><h2 className="text-xl font-bold">Añadir producto</h2><CreateProductForm /></section>}
         <p className="mt-3 text-sm text-fg-muted">

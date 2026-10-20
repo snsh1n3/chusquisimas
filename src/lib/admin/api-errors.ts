@@ -56,3 +56,25 @@ export function adminErrorResponse(
       );
   }
 }
+
+/**
+ * Variante para rutas públicas de la tienda: configuración incompleta o un
+ * servicio externo caído se informan como 503 (no es culpa del cliente).
+ */
+export function publicErrorResponse(
+  error: unknown,
+  context: Pick<RequestContext, "fail" | "requestId">,
+  fields?: LogFields
+): Response {
+  const category = classifyError(error);
+  if (category === "configuration" || category === "upstream") {
+    context.fail(error, category, fields);
+    return Response.json(
+      { error: category === "upstream" && error instanceof AppError
+          ? error.message : "Los pedidos en línea no están disponibles en este momento.",
+        requestId: context.requestId },
+      { status: 503, headers: NO_STORE }
+    );
+  }
+  return adminErrorResponse(error, context, fields);
+}

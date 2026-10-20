@@ -43,8 +43,30 @@ check /favicon.ico  200
 check /icon.svg     200
 check /apple-icon.png 200
 check /no-existe    404
+check /carrito      200
+check /privacidad   200
 # Sin JWT de Access el panel debe negar (404/403/401), nunca fallar con 500.
 check /admin        401,403,404 admin.chusquisimas.com
+check /admin/pedidos 401,403,404 admin.chusquisimas.com
+
+post() {
+  local path="$1" expected="$2" body="$3" origin="${4:-https://chusquisimas.com}"
+  local code
+  code=$(curl -s -o /tmp/smoke-body.json -w '%{http_code}' -X POST -H "Host: chusquisimas.com" \
+    -H "Origin: ${origin}" -H "Content-Type: application/json" --data "$body" "$BASE$path")
+  if [[ ",$expected," == *",$code,"* ]]; then
+    echo "OK   $code  POST ${path}"
+  else
+    echo "FAIL $code  POST ${path} (esperado: $expected): $(head -c 300 /tmp/smoke-body.json)"
+    fail=1
+  fi
+}
+
+# Cotización: variante inexistente → se informa como no disponible, sin error.
+post /api/cart/quote 200 '{"items":[{"variantId":"no-existe","quantity":1}]}'
+post /api/cart/quote 403 '{"items":[{"variantId":"no-existe","quantity":1}]}' "https://evil.example"
+# Pedidos: desactivados mientras falten ORDERS_ENABLED, Turnstile o el aviso de privacidad (503).
+post /api/orders 201,503 '{"items":[]}'
 
 if [[ "$fail" -ne 0 ]]; then
   echo "--- registro de wrangler dev ---"

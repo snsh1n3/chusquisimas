@@ -88,3 +88,9 @@ test("Turnstile: acepta solo respuestas válidas de Siteverify", async () => {
     ValidationError);
   await assert.rejects(verifyTurnstile("token", { secret: "s", fetchImpl: fakeFetch({}, false) }), UpstreamError);
 });
+
+test("los pedidos exigen el aviso de privacidad completo", async () => {
+  const { isPrivacyNoticeComplete } = await import("../../src/lib/legal/privacy-notice.ts");
+  assert.equal(isPrivacyNoticeComplete({ name: "Ana", city: "Bogotá", email: "" }), false);
+  assert.equal(isPrivacyNoticeComplete({ name: "Ana", city: "Bogotá", email: "a@b.co" }), true);
+});
