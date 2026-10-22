@@ -11,6 +11,7 @@ import { AddVariant } from "@/components/admin/add-variant";
 import { ProductPhotoUpload } from "@/components/admin/product-photo-upload";
 import { ProductPhotoManager, type AdminProductImage } from "@/components/admin/product-photo-manager";
 import { CreateProductForm, ProductVisibility, VariantVisibility, EditProduct } from "@/components/admin/product-manager";
+import { getCatalogCategories } from "@/data/catalog";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -25,6 +26,7 @@ interface AdminVariantRow {
   product_description: string;
   product_status: "draft" | "active" | "archived";
   product_ready: number;
+  category_id: string | null;
   variant_id: string | null;
   sku: string | null;
   variant_label: string | null;
@@ -34,6 +36,8 @@ interface AdminVariantRow {
   reserved: number | null;
   price_cop: number | null;
 }
+
+const categoryOptions = getCatalogCategories().map(({ id, name }) => ({ id, name }));
 
 export default async function AdminHomePage({ searchParams }: {
   searchParams: Promise<{ archived?: string }>;
@@ -55,6 +59,7 @@ export default async function AdminHomePage({ searchParams }: {
     const response = await database.prepare(`
       SELECT p.id AS product_id, p.name AS product_name, p.description AS product_description, p.product_type, p.status AS product_status,
         EXISTS(SELECT 1 FROM store_variants av WHERE av.product_id=p.id AND av.status='active' AND av.price_cop IS NOT NULL) AS product_ready,
+        (SELECT pc.category_id FROM store_product_categories pc WHERE pc.product_id=p.id LIMIT 1) AS category_id,
         v.id AS variant_id, v.sku, v.label AS variant_label, v.status AS variant_status,
         a.name AS aroma_name, v.on_hand, v.reserved, v.price_cop
       FROM store_products p
@@ -93,7 +98,7 @@ export default async function AdminHomePage({ searchParams }: {
           <Link href="/admin/pedidos" className="pb-1 text-fg-muted hover:text-fg">Pedidos</Link>
         </nav>
         <h1 className="mt-3 text-3xl font-bold">Catálogo e inventario</h1>
-        {canManageProducts && <section className="mt-7"><h2 className="text-xl font-bold">Añadir producto</h2><CreateProductForm /></section>}
+        {canManageProducts && <section className="mt-7"><h2 className="text-xl font-bold">Añadir producto</h2><CreateProductForm categories={categoryOptions} /></section>}
         <p className="mt-3 text-sm text-fg-muted">
           Existencias por variante y aroma. Cada ajuste requiere un motivo
           y queda registrado con la identidad del administrador.
@@ -124,7 +129,7 @@ export default async function AdminHomePage({ searchParams }: {
                       <ProductPhotoManager images={imagesByProduct.get(row.product_id) ?? []} />
                       <ProductPhotoUpload productId={row.product_id} />
                     </>}
-                    {(index === 0 || rows[index - 1]?.product_id !== row.product_id) && canManageProducts && <EditProduct id={row.product_id} initialName={row.product_name} initialDescription={row.product_description} initialType={row.product_type} status={row.product_status} />}
+                    {(index === 0 || rows[index - 1]?.product_id !== row.product_id) && canManageProducts && <EditProduct id={row.product_id} initialName={row.product_name} initialDescription={row.product_description} initialType={row.product_type} initialCategory={row.category_id ?? ""} categories={categoryOptions} status={row.product_status} />}
                     {index === 0 || rows[index - 1]?.product_id !== row.product_id ? (
                       canManageProducts ? <ProductVisibility id={row.product_id} status={row.product_status} canPublish={row.product_ready === 1} /> : <div className="text-xs">{row.product_status}</div>
                     ) : null}

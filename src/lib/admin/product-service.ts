@@ -1,4 +1,5 @@
 import { ConflictError, ValidationError } from "../observability/errors.ts";
+import { catalogCategories } from "../../data/catalog/categories.ts";
 export type ProductType = "candle" | "wax_melt" | "kit" | "custom";
 export type ProductStatus = "draft" | "active" | "archived";
 
@@ -13,6 +14,24 @@ export function validateNewProduct(value: {
     throw new ValidationError("product_type_invalid", "Tipo de producto inválido");
   }
   return { name, description, productType: value.productType as ProductType };
+}
+
+const CATEGORY_IDS: ReadonlySet<string> = new Set(catalogCategories.map((category) => category.id));
+
+/** Categoría sugerida para un tipo; el panel puede elegir otra. */
+export function defaultCategoryForType(productType: ProductType): string {
+  return productType === "candle" ? "cat-velas-aromaticas"
+    : productType === "wax_melt" ? "cat-wax-melts"
+    : productType === "kit" ? "cat-kits" : "cat-personalizados";
+}
+
+/** Categoría elegida en el panel (opcional). Solo se aceptan las del catálogo. */
+export function validateCategoryId(value: unknown): string | undefined {
+  if (value === undefined || value === null || value === "") return undefined;
+  if (typeof value !== "string" || !CATEGORY_IDS.has(value)) {
+    throw new ValidationError("product_category_invalid", "Categoría inválida");
+  }
+  return value;
 }
 
 export function validateStatus(value: unknown): ProductStatus {
@@ -36,23 +55,21 @@ export interface ProductDatabase {
 }
 
 export async function createDraftProduct(
-  db: ProductDatabase, value: { name: string; description: string; productType: string },
+  db: ProductDatabase, value: { name: string; description: string; productType: string; categoryId?: unknown },
   actorId: string, productId: string, auditId: string,
 ) {
   const product = validateNewProduct(value);
+  const category = validateCategoryId(value.categoryId) ?? defaultCategoryForType(product.productType);
   const slug = `${slugify(product.name) || "producto"}-${productId.slice(0, 8)}`;
   const insert = db.prepare(
     "INSERT INTO store_products (id,slug,name,description,status,product_type) VALUES (?,?,?,?,'draft',?)"
   ).bind(productId, slug, product.name, product.description, product.productType);
   const audit = db.prepare(
-    "INSERT INTO admin_audit_log (id,actor_user_id,action,resource_type,resource_id,details_json) VALUES (?,?,'product_create','product',?,json_object('name',?,'status','draft'))"
-  ).bind(auditId, actorId, productId, product.name);
+    "INSERT INTO admin_audit_log (id,actor_user_id,action,resource_type,resource_id,details_json) VALUES (?,?,'product_create','product',?,json_object('name',?,'status','draft','category',?))"
+  ).bind(auditId, actorId, productId, product.name, category);
   const initialVariant = db.prepare(
     "INSERT INTO store_variants (id,product_id,sku,label,status,price_cop,on_hand,reserved) VALUES (?,?,?, ?,'inactive',NULL,0,0)"
   ).bind(`variant-${productId}`, productId, `CHV2-${slugify(product.name)}`, "Presentación estándar");
-  const category = product.productType === "candle" ? "cat-velas-aromaticas"
-    : product.productType === "wax_melt" ? "cat-wax-melts"
-    : product.productType === "kit" ? "cat-kits" : "cat-personalizados";
   const linkCategory = db.prepare(
     "INSERT INTO store_product_categories (product_id,category_id) VALUES (?,?)"
   ).bind(productId, category);
@@ -98,7 +115,8 @@ export async function changeProductStatus(
 /** Keep stable product IDs, slugs and SKUs while editing display metadata. */
 export async function editProduct(
   db: ProductDatabase,
-  input: { id: string; expectedName: string; name: string; description: string; productType: string },
+  input: { id: string; expectedName: string; name: string; description: string; productType: string;
+    categoryId?: unknown },
   actorId: string,
   auditId: string,
 ) {
@@ -106,16 +124,17 @@ export async function editProduct(
     throw new ProductConflictError("Producto inválido");
   }
   const product = validateNewProduct(input);
-  const category = product.productType === "candle" ? "cat-velas-aromaticas"
-    : product.productType === "wax_melt" ? "cat-wax-melts"
-    : product.productType === "kit" ? "cat-kits" : "cat-personalizados";
+  const chosenCategory = validateCategoryId(input.categoryId);
+  const category = chosenCategory ?? defaultCategoryForType(product.productType);
   const audit = db.prepare(`
     INSERT INTO admin_audit_log (id,actor_user_id,action,resource_type,resource_id,details_json)
     SELECT ?,?,'product_edit','product',id,
       json_object('old_name',name,'new_name',?,'old_description',description,'new_description',?,
-                  'old_type',product_type,'new_type',?)
+                  'old_type',product_type,'new_type',?,
+                  'old_category',(SELECT category_id FROM store_product_categories WHERE product_id=store_products.id LIMIT 1),
+                  'new_category',?)
     FROM store_products WHERE id=? AND name=?
-  `).bind(auditId, actorId, product.name, product.description, product.productType,
+  `).bind(auditId, actorId, product.name, product.description, product.productType, category,
     input.id, input.expectedName);
   const update = db.prepare(`
     UPDATE store_products SET name=?, description=?, product_type=?, updated_at=CURRENT_TIMESTAMP
@@ -123,15 +142,20 @@ export async function editProduct(
     (SELECT 1 FROM admin_audit_log WHERE id=? AND resource_id=store_products.id)
   `).bind(product.name, product.description, product.productType,
     input.id, input.expectedName, auditId);
-  // La categoría solo se recalcula si cambia el tipo: así se conservan las
-  // categorías asignadas aparte del tipo (p. ej. Pebeteros, de tipo «custom»).
-  const typeChanged = `EXISTS (SELECT 1 FROM admin_audit_log WHERE id=?)
+  // Con categoría elegida en el panel se aplica esa. Sin ella, la categoría
+  // solo se recalcula si cambia el tipo: así se conservan las asignadas aparte
+  // (p. ej. Pebeteros, de tipo «custom»).
+  const applies = chosenCategory
+    ? "EXISTS (SELECT 1 FROM admin_audit_log WHERE id=?)"
+    : `EXISTS (SELECT 1 FROM admin_audit_log WHERE id=?)
     AND (SELECT product_type FROM store_products WHERE id=?) <> ?`;
-  const unlink = db.prepare(`DELETE FROM store_product_categories WHERE product_id=? AND ${typeChanged}`)
-    .bind(input.id, auditId, input.id, product.productType);
-  const link = db.prepare(`INSERT INTO store_product_categories(product_id,category_id)
-    SELECT ?,? WHERE ${typeChanged}`)
-    .bind(input.id, category, auditId, input.id, product.productType);
+  const appliesArgs = chosenCategory ? [auditId] : [auditId, input.id, product.productType];
+  const unlink = db.prepare(`DELETE FROM store_product_categories
+    WHERE product_id=? AND category_id <> ? AND ${applies}`)
+    .bind(input.id, category, ...appliesArgs);
+  const link = db.prepare(`INSERT OR IGNORE INTO store_product_categories(product_id,category_id)
+    SELECT ?,? WHERE ${applies}`)
+    .bind(input.id, category, ...appliesArgs);
   const results = await db.batch([audit, unlink, link, update]);
   if (results.length !== 4 || !results[0]?.success || results[0].meta.changes !== 1 ||
       !results[1]?.success || !results[2]?.success ||

@@ -45,7 +45,7 @@ export const POST = withApiLogging("admin.products.mutate", async (request: Next
         throw new ValidationError("product_create_invalid", "Datos inválidos");
       }
       const product = await createDraftProduct(db, {
-        name: v.name, description: v.description, productType: v.productType,
+        name: v.name, description: v.description, productType: v.productType, categoryId: v.categoryId,
       }, principal.id, crypto.randomUUID(), crypto.randomUUID());
       ctx.logger.info("admin.product.created", { actorId: principal.id, productId: product.id });
       return NextResponse.json({ created: true, ...product }, { status: 201, headers: NO_STORE });
@@ -59,7 +59,7 @@ export const POST = withApiLogging("admin.products.mutate", async (request: Next
       }
       await editProduct(db, {
         id: v.id, expectedName: v.expectedName, name: v.name,
-        description: v.description, productType: v.productType,
+        description: v.description, productType: v.productType, categoryId: v.categoryId,
       }, principal.id, crypto.randomUUID());
       ctx.logger.info("admin.product.edited", { actorId: principal.id, productId: v.id });
       return NextResponse.json({ updated: true }, { headers: NO_STORE });

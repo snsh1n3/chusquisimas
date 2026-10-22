@@ -72,24 +72,13 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 sm:flex">
+        <div className="hidden lg:flex">
           <CartLink />
-          <Link
-            href="/tienda"
-            className="inline-flex rounded-full bg-action px-5 py-3 text-sm font-bold text-on-action transition-colors hover:bg-action-hover hover:text-on-action-hover"
-          >
-            Ver la tienda
-          </Link>
         </div>
 
         <div className="flex items-center gap-2 lg:hidden">
-          <div className="sm:hidden"><CartLink /></div>
-          <Link
-            href="/tienda"
-            className="rounded-full bg-action px-4 py-2.5 text-sm font-bold text-on-action transition-colors hover:bg-action-hover hover:text-on-action-hover"
-          >
-            Tienda
-          </Link>
+          {/* Un solo botón principal: la tienda sigue en el menú. */}
+          <CartLink variant="compact" />
 
         <button
           ref={toggleRef}

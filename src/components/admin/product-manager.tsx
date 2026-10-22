@@ -4,12 +4,34 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 type ProductStatus = "draft" | "active" | "archived";
+type ProductType = "candle" | "wax_melt" | "kit" | "custom";
+export interface CategoryOption { id: string; name: string }
 
-export function CreateProductForm() {
+/** Categoría sugerida para cada tipo (la misma regla del servidor). */
+const DEFAULT_CATEGORY: Record<ProductType, string> = {
+  candle: "cat-velas-aromaticas",
+  wax_melt: "cat-wax-melts",
+  kit: "cat-kits",
+  custom: "cat-personalizados",
+};
+
+function TypeOptions() {
+  return <>
+    <option value="candle">Vela</option>
+    <option value="wax_melt">Wax melts</option>
+    <option value="kit">Kit</option>
+    <option value="custom">Otro / personalizado</option>
+  </>;
+}
+
+export function CreateProductForm({ categories }: { categories: CategoryOption[] }) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [productType, setProductType] = useState("candle");
+  const [productType, setProductType] = useState<ProductType>("candle");
+  const [categoryId, setCategoryId] = useState(DEFAULT_CATEGORY.candle);
+  // Mientras no se elija una categoría a mano, sigue la sugerida por el tipo.
+  const [categoryTouched, setCategoryTouched] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
 
@@ -19,11 +41,12 @@ export function CreateProductForm() {
     try {
       const response = await fetch("/api/admin/products", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "create", name, description, productType }),
+        body: JSON.stringify({ action: "create", name, description, productType, categoryId }),
       });
       const data = await response.json() as { error?: string };
       if (!response.ok) throw Error(data.error || "No se pudo crear");
-      setName(""); setDescription("");
+      setName(""); setDescription(""); setCategoryTouched(false);
+      setCategoryId(DEFAULT_CATEGORY[productType]);
       setNotice("Producto creado como borrador. Aún no es visible en la tienda.");
       router.refresh();
     } catch (e) {
@@ -38,11 +61,18 @@ export function CreateProductForm() {
           className="rounded-control border p-3" placeholder="Nombre del producto" />
       </label>
       <label className="grid gap-1 text-sm">Tipo
-        <select value={productType} onChange={e => setProductType(e.target.value)} className="rounded-control border p-3">
-          <option value="candle">Vela</option>
-          <option value="wax_melt">Wax melts</option>
-          <option value="kit">Kit</option>
-          <option value="custom">Personalizado</option>
+        <select value={productType} onChange={e => {
+          const type = e.target.value as ProductType;
+          setProductType(type);
+          if (!categoryTouched) setCategoryId(DEFAULT_CATEGORY[type]);
+        }} className="rounded-control border p-3">
+          <TypeOptions />
+        </select>
+      </label>
+      <label className="grid gap-1 text-sm">Categoría en la tienda
+        <select value={categoryId} onChange={e => { setCategoryId(e.target.value); setCategoryTouched(true); }}
+          className="rounded-control border p-3">
+          {categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
         </select>
       </label>
       <label className="grid gap-1 text-sm sm:col-span-2">Descripción
@@ -133,10 +163,12 @@ export function VariantVisibility({
 }
 
 export function EditProduct({
-  id, initialName, initialDescription, initialType, status,
+  id, initialName, initialDescription, initialType, initialCategory, categories, status,
 }: {
   id: string; initialName: string; initialDescription: string;
-  initialType: "candle" | "wax_melt" | "kit" | "custom";
+  initialType: ProductType;
+  initialCategory: string;
+  categories: CategoryOption[];
   status: ProductStatus;
 }) {
   const router = useRouter();
@@ -144,6 +176,7 @@ export function EditProduct({
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription);
   const [productType, setProductType] = useState(initialType);
+  const [categoryId, setCategoryId] = useState(initialCategory || DEFAULT_CATEGORY[initialType]);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   async function request(payload: Record<string, unknown>) {
@@ -159,7 +192,7 @@ export function EditProduct({
     event.preventDefault();
     setBusy(true); setNotice("");
     try {
-      await request({ action: "edit", id, expectedName: initialName, name, description, productType });
+      await request({ action: "edit", id, expectedName: initialName, name, description, productType, categoryId });
       setNotice("Cambios guardados.");
       setOpen(false);
     } catch (error) {
@@ -211,13 +244,16 @@ export function EditProduct({
         <textarea maxLength={2000} value={description}
           onChange={e => setDescription(e.target.value)} className="w-full rounded border p-2" />
       </label>
-      <label>Tipo / categoría
-        <select value={productType} onChange={e => setProductType(e.target.value as typeof productType)}
+      <label>Tipo
+        <select value={productType} onChange={e => setProductType(e.target.value as ProductType)}
           className="w-full rounded border p-2">
-          <option value="candle">Vela</option>
-          <option value="wax_melt">Wax melts</option>
-          <option value="kit">Kit</option>
-          <option value="custom">Personalizado</option>
+          <TypeOptions />
+        </select>
+      </label>
+      <label>Categoría en la tienda
+        <select value={categoryId} onChange={e => setCategoryId(e.target.value)}
+          className="w-full rounded border p-2">
+          {categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
         </select>
       </label>
       <button type="submit" disabled={busy}
