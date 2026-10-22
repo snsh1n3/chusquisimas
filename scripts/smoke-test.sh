@@ -47,6 +47,10 @@ check /apple-icon.png 200
 check /no-existe    404
 check /carrito      200
 check /privacidad   200
+check /terminos     200
+check /envios       200
+check /cambios      200
+check /pqr          200
 # Sin JWT de Access el panel debe negar (404/403/401), nunca fallar con 500.
 check /admin        401,403,404 admin.chusquisimas.com
 check /admin/pedidos 401,403,404 admin.chusquisimas.com

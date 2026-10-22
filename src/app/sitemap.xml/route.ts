@@ -17,6 +17,7 @@ export const GET = withApiLogging("public.sitemap", async (request: NextRequest,
   const entries: SitemapEntry[] = [
     { path: "/" },
     { path: "/tienda" },
+    ...["/terminos", "/envios", "/cambios", "/pqr", "/privacidad"].map((path) => ({ path })),
     ...getCatalogCategories().map((category) => ({
       path: `/tienda?categoria=${encodeURIComponent(category.slug)}`,
     })),
