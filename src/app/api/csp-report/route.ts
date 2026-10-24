@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import {
   CSP_REPORT_CONTENT_TYPES, MAX_CSP_REPORT_BYTES, parseCspReports,
 } from "@/lib/security/csp-report";
+import { readBodyTextWithin } from "@/lib/http/json-body";
 import { withApiLogging } from "@/lib/observability/with-api-logging";
 
 export const dynamic = "force-dynamic";
@@ -18,11 +19,8 @@ export const POST = withApiLogging("public.csp.report", async (request: NextRequ
   if (!(CSP_REPORT_CONTENT_TYPES as readonly string[]).includes(type)) {
     return new Response(null, { status: 415 });
   }
-  if (Number(request.headers.get("content-length") ?? "0") > MAX_CSP_REPORT_BYTES) {
-    return new Response(null, { status: 413 });
-  }
-  const raw = await request.text();
-  if (raw.length > MAX_CSP_REPORT_BYTES) return new Response(null, { status: 413 });
+  const raw = await readBodyTextWithin(request, MAX_CSP_REPORT_BYTES);
+  if (raw === null) return new Response(null, { status: 413 });
 
   const violations = (() => {
     try {

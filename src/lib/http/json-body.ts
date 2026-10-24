@@ -9,15 +9,48 @@ export type JsonBodyResult = { ok: true; value: unknown } | { ok: false; respons
 
 const NO_STORE = { "Cache-Control": "no-store" } as const;
 
+/**
+ * Lee el cuerpo como texto UTF-8 sin pasar de `maxBytes` bytes reales.
+ * Rechaza un Content-Length declarado mayor o inválido antes de leer y, si
+ * falta (chunked/HTTP2), cuenta bytes mientras lee y cancela el flujo al
+ * superar el límite. Devuelve null cuando el cuerpo es demasiado grande.
+ */
+export async function readBodyTextWithin(request: Request, maxBytes: number): Promise<string | null> {
+  const declared = request.headers.get("content-length");
+  if (declared !== null) {
+    const length = Number(declared);
+    if (!/^\d+$/.test(declared.trim()) || !Number.isSafeInteger(length) || length > maxBytes) return null;
+  }
+  if (!request.body) return "";
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const chunk = await reader.read();
+    if (chunk.done) break;
+    const value = chunk.value;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel().catch(() => {});
+      return null;
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
+}
+
 export async function readJsonBody(request: Request, maxBytes: number): Promise<JsonBodyResult> {
   if (!(request.headers.get("content-type") ?? "").toLowerCase().startsWith("application/json")) {
     return { ok: false, response: Response.json({ error: "Formato inválido" }, { status: 415, headers: NO_STORE }) };
   }
-  if (Number(request.headers.get("content-length") ?? "0") > maxBytes) {
-    return { ok: false, response: Response.json({ error: "Solicitud demasiado grande" }, { status: 413, headers: NO_STORE }) };
-  }
-  const raw = await request.text();
-  if (raw.length > maxBytes) {
+  const raw = await readBodyTextWithin(request, maxBytes);
+  if (raw === null) {
     return { ok: false, response: Response.json({ error: "Solicitud demasiado grande" }, { status: 413, headers: NO_STORE }) };
   }
   try {

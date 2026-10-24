@@ -15,8 +15,9 @@ function deps(now = T0): OrderDeps & { newId: () => string } {
   return { now: () => now, newId: ids, newCode: () => `CH-TEST${String(++codes).padStart(2, "0")}` };
 }
 
-function input(items: OrderInput["items"], zone: OrderInput["shippingZone"] = "local"): OrderInput {
-  return { items, shippingZone: zone, customer: { name: "Ana Pérez", phone: "+573001234567", city: "Bogotá" } };
+function input(items: OrderInput["items"], zone: OrderInput["shippingZone"] = "local",
+  phone = "+573001234567"): OrderInput {
+  return { items, shippingZone: zone, customer: { name: "Ana Pérez", phone, city: "Bogotá" } };
 }
 
 test("crea el pedido, copia precios de D1 y aparta las unidades disponibles", async () => {
@@ -74,7 +75,7 @@ test("reintenta cuando el código aleatorio choca", async () => {
   const d = deps();
   await createOrder(db, input([{ variantId: "v1", quantity: 1 }]), { ...d, newCode: () => "CH-AAAAAA" });
   const codes = ["CH-AAAAAA", "CH-BBBBBB"];
-  const second = await createOrder(db, input([{ variantId: "v1", quantity: 1 }]),
+  const second = await createOrder(db, input([{ variantId: "v1", quantity: 1 }], "local", "+573009999999"),
     { ...d, newCode: () => codes.shift()! });
   assert.equal(second.code, "CH-BBBBBB");
   assert.equal(variantStock(db, "v1").reserved, 2);
@@ -84,7 +85,7 @@ test("nunca reserva más de lo existente: la última unidad es de un solo pedido
   const db = createTestDatabase();
   seedVariant(db, { variantId: "v1", onHand: 1 });
   const first = await createOrder(db, input([{ variantId: "v1", quantity: 1 }]), deps());
-  const second = await createOrder(db, input([{ variantId: "v1", quantity: 1 }]), deps());
+  const second = await createOrder(db, input([{ variantId: "v1", quantity: 1 }], "local", "+573009999999"), deps());
   assert.equal(first.lines[0].fulfillment, "ready_stock");
   assert.equal(second.lines[0].fulfillment, "made_to_order");
   assert.deepEqual(variantStock(db, "v1"), { on_hand: 1, reserved: 1 });
@@ -137,7 +138,7 @@ test("vence los pedidos recibidos tras 48 horas y libera unidades", async () => 
   seedVariant(db, { variantId: "v1", onHand: 2 });
   const d = deps();
   const old = await createOrder(db, input([{ variantId: "v1", quantity: 1 }]), d);
-  const kept = await createOrder(db, input([{ variantId: "v1", quantity: 1 }]),
+  const kept = await createOrder(db, input([{ variantId: "v1", quantity: 1 }], "local", "+573009999999"),
     { ...d, now: () => new Date(T0.getTime() + 24 * 3600_000) });
   await transitionOrder(db, { orderId: kept.id, from: "received", to: "preparing" },
     { actorUserId: null, eventId: "p1", now: T0, newId: d.newId });
@@ -162,4 +163,73 @@ test("el historial del pedido sobrevive al borrado del producto", async () => {
     .get(order.id) as { variant_id: string | null; product_name: string };
   assert.equal(item.variant_id, null);
   assert.equal(item.product_name, "Titina");
+});
+
+// --- Regresiones de la auditoría de seguridad (oct 2026) ---
+
+test("un mismo número no puede tener dos pedidos sin confirmar", async () => {
+  const db = createTestDatabase();
+  seedVariant(db, { variantId: "v1", onHand: 20 });
+  await createOrder(db, input([{ variantId: "v1", quantity: 20 }]), deps());
+  await assert.rejects(createOrder(db, input([{ variantId: "v1", quantity: 1 }]), deps()),
+    (error: unknown) => error instanceof ValidationError && error.code === "order_pending_exists");
+  assert.deepEqual(variantStock(db, "v1"), { on_hand: 20, reserved: 20 });
+  // Otro número sí puede pedir (bajo pedido, porque no queda stock).
+  const other = await createOrder(db, input([{ variantId: "v1", quantity: 1 }], "local", "+573009999999"), deps());
+  assert.equal(other.lines[0].fulfillment, "made_to_order");
+});
+
+test("el número puede volver a pedir cuando su pedido se confirma o vence", async () => {
+  const db = createTestDatabase();
+  seedVariant(db, { variantId: "v1", onHand: 5 });
+  const d = deps();
+  const first = await createOrder(db, input([{ variantId: "v1", quantity: 1 }]), d);
+  await transitionOrder(db, { orderId: first.id, from: "received", to: "preparing" },
+    { actorUserId: null, eventId: "c1", now: T0, newId: d.newId });
+  await createOrder(db, input([{ variantId: "v1", quantity: 1 }]), d);
+  // Pasadas 48 h el pedido recibido ya no cuenta aunque aún no se haya barrido.
+  const later = deps(new Date(T0.getTime() + 49 * 3600_000));
+  await createOrder(db, input([{ variantId: "v1", quantity: 1 }]), later);
+});
+
+test("desactivar la variante durante la creación no deja una reserva fantasma", async () => {
+  const db = createTestDatabase();
+  seedVariant(db, { variantId: "v1", onHand: 3 });
+  const original = db.batch.bind(db);
+  let raced = false;
+  db.batch = (async (statements: Parameters<typeof original>[0]) => {
+    if (!raced) {
+      raced = true;
+      db.raw.exec("UPDATE store_variants SET status = 'inactive' WHERE id = 'v1'");
+    }
+    return original(statements);
+  }) as typeof db.batch;
+  const d = deps();
+  const order = await createOrder(db, input([{ variantId: "v1", quantity: 2 }]), d);
+  const item = db.raw.prepare("SELECT reserved_qty FROM store_order_items WHERE order_id = ?").get(order.id) as
+    { reserved_qty: number };
+  assert.equal(item.reserved_qty, variantStock(db, "v1").reserved);
+  assert.equal(await releaseExpiredOrders(db, new Date(T0.getTime() + 49 * 3600_000), d.newId), 1);
+  assert.deepEqual(variantStock(db, "v1"), { on_hand: 3, reserved: 0 });
+});
+
+test("un pedido que falla al vencer no bloquea a los demás", async () => {
+  const db = createTestDatabase();
+  seedVariant(db, { variantId: "v1", onHand: 3 });
+  seedVariant(db, { variantId: "v2", onHand: 3 });
+  const d = deps();
+  const bad = await createOrder(db, input([{ variantId: "v1", quantity: 2 }]), d);
+  const good = await createOrder(db, input([{ variantId: "v2", quantity: 1 }], "local", "+573009999999"),
+    { ...d, now: () => new Date(T0.getTime() + 60_000) });
+  // Corrompe la reserva del primero para forzar un error que no es de conflicto.
+  db.raw.exec("UPDATE store_variants SET reserved = 0 WHERE id = 'v1'");
+  const failures: string[] = [];
+  const released = await releaseExpiredOrders(db, new Date(T0.getTime() + 49 * 3600_000), d.newId, 10,
+    (_error, orderId) => failures.push(orderId));
+  assert.equal(released, 1);
+  assert.deepEqual(failures, [bad.id]);
+  const status = (db.raw.prepare("SELECT status FROM store_orders WHERE id = ?").get(good.id) as
+    { status: string }).status;
+  assert.equal(status, "cancelled");
+  assert.deepEqual(variantStock(db, "v2"), { on_hand: 3, reserved: 0 });
 });

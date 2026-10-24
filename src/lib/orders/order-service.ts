@@ -132,6 +132,15 @@ export async function createOrder(db: OrdersDatabase, input: OrderInput, deps: O
 }
 
 async function tryCreateOrder(db: OrdersDatabase, input: OrderInput, deps: OrderDeps): Promise<CreatedOrder> {
+  // Un solo pedido sin confirmar por número de WhatsApp: evita que un mismo
+  // cliente aparte el inventario una y otra vez sin confirmar.
+  const pending = await db.prepare(`SELECT 1 AS found FROM store_orders
+    WHERE customer_phone = ? AND status = 'received' AND expires_at > ? LIMIT 1`)
+    .bind(input.customer.phone, isoNow(deps.now())).first<{ found: number }>();
+  if (pending) {
+    throw new ValidationError("order_pending_exists",
+      "Ya tienes un pedido pendiente de confirmar. Escríbenos por WhatsApp para confirmarlo o cancelarlo.");
+  }
   const variants = await loadVariants(db, input.items.map((item) => item.variantId));
   const zone = await loadShippingZone(db, input.shippingZone);
 
@@ -193,10 +202,12 @@ async function tryCreateOrder(db: OrdersDatabase, input: OrderInput, deps: Order
       .bind(deps.newId(), orderId, line.variantId, line.productName, line.variantLabel, line.aroma,
         line.quantity, line.unitPriceCOP, line.fulfillment, line.preparationDays, line.reservedQty, index));
     if (line.reservedQty > 0) {
-      // Sin condición en el WHERE a propósito: si no alcanzan las unidades, el
+      // Sin condición de estado en el WHERE a propósito: si la variante se
+      // desactiva entre la lectura y el batch, la reserva igual debe quedar
+      // registrada (el ítem ya la declara). Si no alcanzan las unidades, el
       // CHECK(reserved <= on_hand) aborta el batch completo.
       statements.push(db.prepare(`UPDATE store_variants SET reserved = reserved + ?, updated_at = ?
-        WHERE id = ? AND status = 'active'`).bind(line.reservedQty, createdAt, line.variantId));
+        WHERE id = ?`).bind(line.reservedQty, createdAt, line.variantId));
     }
   });
 
@@ -307,7 +318,8 @@ export async function releaseExpiredOrders(
   db: OrdersDatabase,
   now: Date,
   newId: () => string,
-  limit = 10
+  limit = 10,
+  onError?: (error: unknown, orderId: string) => void
 ): Promise<number> {
   const { results } = await db.prepare(`SELECT id FROM store_orders
     WHERE status = 'received' AND expires_at IS NOT NULL AND expires_at <= ?
@@ -325,8 +337,10 @@ export async function releaseExpiredOrders(
       });
       released++;
     } catch (error) {
-      // Otro proceso lo cambió primero: no es un error.
-      if (!(error instanceof ConflictError)) throw error;
+      // Otro proceso lo cambió primero: no es un error. Cualquier otro fallo
+      // se reporta y se sigue con el siguiente: un pedido inconsistente no
+      // debe bloquear la toma de pedidos ni el panel.
+      if (!(error instanceof ConflictError)) onError?.(error, id);
     }
   }
   return released;

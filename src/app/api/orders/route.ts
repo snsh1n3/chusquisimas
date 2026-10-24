@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { publicErrorResponse } from "@/lib/admin/api-errors";
 import { isSameSiteOrigin, readJsonBody } from "@/lib/http/json-body";
 import { ConfigurationError } from "@/lib/observability/errors";
+import { describeError } from "@/lib/observability/logger";
 import { withApiLogging } from "@/lib/observability/with-api-logging";
 import { validateOrderInput } from "@/lib/orders/order-inputs";
 import { createRegisteredOrderWhatsAppUrl } from "@/lib/orders/order-message";
@@ -55,7 +56,8 @@ export const POST = withApiLogging("public.orders.create", async (request: NextR
 
     const now = new Date();
     const newId = () => crypto.randomUUID();
-    await releaseExpiredOrders(runtime.db, now, newId);
+    await releaseExpiredOrders(runtime.db, now, newId, undefined, (error, orderId) =>
+      ctx.logger.error("orders.expire_failed", { orderId, ...describeError(error) }));
     const created = await createOrder(runtime.db, order, { now: () => now, newId });
 
     ctx.logger.info("orders.created", {

@@ -34,7 +34,14 @@ aplicada, Turnstile activo y pedido real verificado desde la tienda.
 | Cancelado | Libera las reservas | — |
 
 Los pedidos en «Recibido» con más de 48 h se cancelan solos. Se revisa al
-registrar un pedido y al abrir el panel; no hay tarea programada.
+registrar un pedido y al abrir el panel; no hay tarea programada. Si un
+pedido falla al vencer, se registra `orders.expire_failed` y se sigue con
+los demás: nunca bloquea la tienda ni el panel.
+
+Cada número de WhatsApp puede tener **un solo pedido «Recibido» sin
+confirmar**. Si intenta registrar otro, la tienda le pide confirmar o
+cancelar el anterior por WhatsApp. Al pasar a «En preparación», cancelarse
+o vencer, el número puede volver a pedir.
 
 ## Permisos
 

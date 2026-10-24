@@ -39,7 +39,9 @@ export default async function AdminOrdersPage({ searchParams }: {
     const db = database as unknown as OrdersDatabase;
     canWrite = can(principal, "orders.write");
     // Libera reservas vencidas antes de mostrar la lista.
-    await releaseExpiredOrders(db, new Date(), () => crypto.randomUUID());
+    await releaseExpiredOrders(db, new Date(), () => crypto.randomUUID(), undefined, (error, orderId) =>
+      createLogger({ operation: "admin.orders.render" }).error("orders.expire_failed",
+        { orderId, ...describeError(error) }));
     [orders, zones] = await Promise.all([listOrders(db, filter), listShippingZones(db)]);
   } catch (error) {
     const logger = createLogger({ operation: "admin.orders.render" });
