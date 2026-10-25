@@ -42,8 +42,8 @@ describe("product SEO", () => {
 
 it("serializeJsonForScript no deja caracteres que cierren el script", async () => {
   const { serializeJsonForScript } = await import("../../src/lib/catalog/product-seo.ts");
-  const hostile = { name: "</script><script>alert(1)</script>", note: "<!-- & >   " };
+  const hostile = { name: "</script><script>alert(1)</script>", note: "<!-- & > \u2028\u2029" };
   const out = serializeJsonForScript(hostile);
-  for (const ch of ["<", ">", "&", " ", " "]) assert.equal(out.includes(ch), false, ch);
+  for (const ch of ["<", ">", "&", "\u2028", "\u2029"]) assert.equal(out.includes(ch), false, ch);
   assert.deepEqual(JSON.parse(out), hostile);
 });
