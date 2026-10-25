@@ -4,7 +4,7 @@ import { createRegisteredOrderMessage, createRegisteredOrderWhatsAppUrl } from "
 import type { CreatedOrder } from "../../src/lib/orders/order-service.ts";
 import { quoteCart } from "../../src/lib/orders/cart-quote.ts";
 import { updateShippingZone, validateShippingZoneEdit } from "../../src/lib/orders/shipping-service.ts";
-import { verifyTurnstile } from "../../src/lib/security/turnstile.ts";
+import { isLocalClient, isTurnstileTestSecret, verifyTurnstile } from "../../src/lib/security/turnstile.ts";
 import { UpstreamError, ValidationError } from "../../src/lib/observability/errors.ts";
 import { createTestDatabase, seedVariant } from "../helpers/d1-sqlite.ts";
 
@@ -78,15 +78,35 @@ function fakeFetch(payload: unknown, ok = true): typeof fetch {
 }
 
 test("Turnstile: acepta solo respuestas válidas de Siteverify", async () => {
-  await verifyTurnstile("token", { secret: "s", fetchImpl: fakeFetch({ success: true, action: "order" }) });
-  await verifyTurnstile("token", { secret: "s", fetchImpl: fakeFetch({ success: true, action: "" }) });
-  await assert.rejects(verifyTurnstile("token", { secret: "s", fetchImpl: fakeFetch({ success: false }) }),
+  const real = { secret: "0x4AAAAAAA-real-secret", expectedHostnames: ["chusquisimas.com"] };
+  const ok = { success: true, action: "order", hostname: "chusquisimas.com" };
+  await verifyTurnstile("token", { ...real, fetchImpl: fakeFetch(ok) });
+  // Con la clave real se exigen la acción del widget y el hostname de la tienda.
+  await assert.rejects(verifyTurnstile("token", { ...real, fetchImpl: fakeFetch({ ...ok, action: "" }) }),
     ValidationError);
-  await assert.rejects(verifyTurnstile("token", { secret: "s",
-    fetchImpl: fakeFetch({ success: true, action: "login" }) }), ValidationError);
-  await assert.rejects(verifyTurnstile("", { secret: "s", fetchImpl: fakeFetch({ success: true }) }),
+  await assert.rejects(verifyTurnstile("token", { ...real, fetchImpl: fakeFetch({ ...ok, action: "login" }) }),
     ValidationError);
-  await assert.rejects(verifyTurnstile("token", { secret: "s", fetchImpl: fakeFetch({}, false) }), UpstreamError);
+  await assert.rejects(verifyTurnstile("token", { ...real,
+    fetchImpl: fakeFetch({ ...ok, hostname: "evil.example" }) }), ValidationError);
+  await assert.rejects(verifyTurnstile("token", { ...real, fetchImpl: fakeFetch({ success: false }) }),
+    ValidationError);
+  await assert.rejects(verifyTurnstile("", { ...real, fetchImpl: fakeFetch(ok) }), ValidationError);
+  await assert.rejects(verifyTurnstile("token", { ...real, fetchImpl: fakeFetch({}, false) }), UpstreamError);
+  // La clave de prueba devuelve action vacía y hostname genérico: se acepta solo en local.
+  const test = { secret: "1x0000000000000000000000000000000AA", expectedHostnames: ["chusquisimas.com"] };
+  await verifyTurnstile("token", { ...test,
+    fetchImpl: fakeFetch({ success: true, action: "", hostname: "example.com" }) });
+});
+
+test("Turnstile: reconoce las claves de prueba y los clientes locales", () => {
+  assert.equal(isTurnstileTestSecret("1x0000000000000000000000000000000AA"), true);
+  assert.equal(isTurnstileTestSecret("2x0000000000000000000000000000000AA"), true);
+  assert.equal(isTurnstileTestSecret("3x0000000000000000000000000000000AA"), true);
+  assert.equal(isTurnstileTestSecret("0x4AAAAAAA-real-secret"), false);
+  assert.equal(isLocalClient(null), true);
+  assert.equal(isLocalClient("127.0.0.1"), true);
+  assert.equal(isLocalClient("::1"), true);
+  assert.equal(isLocalClient("190.24.10.5"), false);
 });
 
 test("los pedidos exigen el aviso de privacidad completo", async () => {

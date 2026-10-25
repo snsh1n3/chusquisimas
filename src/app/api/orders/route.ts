@@ -8,8 +8,11 @@ import { validateOrderInput } from "@/lib/orders/order-inputs";
 import { createRegisteredOrderWhatsAppUrl } from "@/lib/orders/order-message";
 import { createOrder, releaseExpiredOrders } from "@/lib/orders/order-service";
 import { getOrdersRuntime } from "@/lib/orders/runtime";
-import { verifyTurnstile } from "@/lib/security/turnstile";
+import { isLocalClient, isTurnstileTestSecret, verifyTurnstile } from "@/lib/security/turnstile";
 import { SITE_URL } from "@/lib/site";
+
+const SITE_HOSTNAME = new URL(SITE_URL).hostname;
+const TURNSTILE_HOSTNAMES = [SITE_HOSTNAME, `www.${SITE_HOSTNAME}`] as const;
 
 export const dynamic = "force-dynamic";
 
@@ -33,13 +36,16 @@ export const POST = withApiLogging("public.orders.create", async (request: NextR
       return NextResponse.json({ error: "Origen no autorizado" }, { status: 403, headers: NO_STORE });
     }
     const ip = request.headers.get("cf-connecting-ip");
-    if (runtime.rateLimiter && ip) {
-      const { success } = await runtime.rateLimiter.limit({ key: `orders:${ip}` });
-      if (!success) {
-        ctx.logger.warn("orders.rate_limited");
-        return NextResponse.json({ error: "Demasiados intentos. Espera un minuto e inténtalo de nuevo." },
-          { status: 429, headers: { ...NO_STORE, "Retry-After": "60" } });
-      }
+    // Falla cerrado: sin el binding no se aceptan pedidos; sin IP (nunca pasa
+    // detrás de Cloudflare) todos comparten un mismo cupo en lugar de saltarlo.
+    if (!runtime.rateLimiter) {
+      throw new ConfigurationError("orders_rate_limiter_missing", "Pedidos no disponibles.");
+    }
+    const { success: withinLimit } = await runtime.rateLimiter.limit({ key: `orders:${ip ?? "sin-ip"}` });
+    if (!withinLimit) {
+      ctx.logger.warn("orders.rate_limited");
+      return NextResponse.json({ error: "Demasiados intentos. Espera un minuto e inténtalo de nuevo." },
+        { status: 429, headers: { ...NO_STORE, "Retry-After": "60" } });
     }
     const body = await readJsonBody(request, MAX_BODY_BYTES);
     if (!body.ok) return body.response;
@@ -48,10 +54,15 @@ export const POST = withApiLogging("public.orders.create", async (request: NextR
     if (!runtime.turnstileSecret) {
       throw new ConfigurationError("turnstile_secret_missing", "Pedidos no disponibles.");
     }
+    // La clave de prueba (siempre aprueba) jamás debe atender tráfico real.
+    if (isTurnstileTestSecret(runtime.turnstileSecret) && !isLocalClient(ip)) {
+      throw new ConfigurationError("turnstile_test_secret_in_production", "Pedidos no disponibles.");
+    }
     await verifyTurnstile((body.value as Record<string, unknown>).turnstileToken, {
       secret: runtime.turnstileSecret,
       remoteIp: ip,
       idempotencyKey: ctx.requestId.length === 36 ? ctx.requestId : undefined,
+      expectedHostnames: TURNSTILE_HOSTNAMES,
     });
 
     const now = new Date();

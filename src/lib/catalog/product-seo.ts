@@ -3,8 +3,22 @@
  * estructurados schema.org/Product. Solo usa la proyección pública.
  */
 import type { PublicProduct, PublicVariant } from "./public-catalog.ts";
-
 import { INSTAGRAM_URL, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "../site.ts";
+
+/**
+ * JSON seguro para un <script type="application/ld+json">: escapa los
+ * caracteres que podrían cerrar el script o abrir un comentario HTML, y los
+ * separadores de línea Unicode. El resultado sigue siendo JSON válido.
+ */
+export function serializeJsonForScript(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+}
+
 
 export { SITE_URL };
 const MAX_DESCRIPTION = 155;
@@ -47,12 +61,12 @@ export function buildProductJsonLd(product: PublicProduct, variants: readonly Pu
       url,
     };
   }
-  return JSON.stringify(data).replace(/</g, "\\u003c");
+  return serializeJsonForScript(data);
 }
 
 /** Organization para la página de inicio: nombre, sitio, logo y perfiles oficiales. */
 export function buildOrganizationJsonLd(): string {
-  return JSON.stringify({
+  return serializeJsonForScript({
     "@context": "https://schema.org",
     "@type": "Organization",
     name: SITE_NAME,
@@ -60,5 +74,5 @@ export function buildOrganizationJsonLd(): string {
     logo: `${SITE_URL}/brand/chusquisimas-logo.svg`,
     description: SITE_DESCRIPTION,
     sameAs: [INSTAGRAM_URL],
-  }).replace(/</g, "\\u003c");
+  });
 }

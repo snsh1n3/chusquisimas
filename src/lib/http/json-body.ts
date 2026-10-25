@@ -45,6 +45,15 @@ export async function readBodyTextWithin(request: Request, maxBytes: number): Pr
   return new TextDecoder().decode(bytes);
 }
 
+/** JSON.parse que responde 400 (validación) en lugar de un 500 interno. */
+export function parseJsonText(raw: string): unknown {
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    throw new ValidationError("body_json_invalid", "Solicitud inválida.", { cause: error });
+  }
+}
+
 export async function readJsonBody(request: Request, maxBytes: number): Promise<JsonBodyResult> {
   if (!(request.headers.get("content-type") ?? "").toLowerCase().startsWith("application/json")) {
     return { ok: false, response: Response.json({ error: "Formato inválido" }, { status: 415, headers: NO_STORE }) };

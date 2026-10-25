@@ -10,6 +10,13 @@ aplicada, Turnstile activo y pedido real verificado desde la tienda.
 - **Registro (`POST /api/orders`):** valida origen, límite por IP (5 por minuto),
   datos, autorización de datos y Turnstile. Recalcula todo desde D1 y crea el
   pedido con su número (`CH-XXXXXX`).
+  - El límite **falla cerrado**: sin el binding `ORDER_RATE_LIMITER` responde
+    503; sin `cf-connecting-ip` todos comparten un mismo cupo.
+  - Con la clave secreta real, Turnstile exige la acción `order` y que el token
+    venga de `chusquisimas.com` (o `www.`). La clave de prueba solo se acepta
+    desde la propia máquina (`127.0.0.1`); en producción responde 503 y registra
+    `turnstile_test_secret_in_production`.
+  - Los cuerpos se leen contando bytes y se cortan al pasar el límite.
 - **Reserva:** las líneas de entrega inmediata apartan unidades
   (`store_variants.reserved`) en la misma transacción. Si no alcanzan, la línea
   pasa a bajo pedido; si el producto no se fabrica, se rechaza.
@@ -81,7 +88,8 @@ registrados se conservan.
 ## Desarrollo local
 
 Copia `.dev.vars.example` como `.dev.vars`. Usa las claves de prueba de
-Turnstile, que siempre aprueban.
+Turnstile, que siempre aprueban, pero solo para peticiones desde la propia
+máquina: nunca las pongas como secreto del Worker desplegado.
 
 Para ver el carrito en local también hay que completar el aviso de privacidad,
 porque sin él los pedidos quedan desactivados.

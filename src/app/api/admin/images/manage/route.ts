@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { requireAuthenticatedAdmin } from "@/lib/admin/server-auth";
+import { parseJsonText, readBodyTextWithin } from "@/lib/http/json-body";
 import { adminErrorResponse } from "@/lib/admin/api-errors";
 import { isValidImageId, parseExpectedOrder, type ImageOrderAction } from "@/lib/admin/image-order";
 import {
@@ -37,11 +38,11 @@ export const POST = withApiLogging("admin.images.manage", async (request: NextRe
   let action: string | undefined;
   try {
     const { principal, database } = await requireAuthenticatedAdmin("media.write");
-    const raw = await request.text();
-    if (raw.length > MAX_BODY_BYTES) {
+    const raw = await readBodyTextWithin(request, MAX_BODY_BYTES);
+    if (raw === null) {
       return NextResponse.json({ error: "Solicitud demasiado grande" }, { status: 413 });
     }
-    const body: unknown = JSON.parse(raw);
+    const body: unknown = parseJsonText(raw);
     if (!body || typeof body !== "object" || Array.isArray(body)) {
       throw new ValidationError("body_not_object", "Datos inválidos");
     }

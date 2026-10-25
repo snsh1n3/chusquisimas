@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import {
   CSP_REPORT_CONTENT_TYPES, MAX_CSP_REPORT_BYTES, parseCspReports,
 } from "@/lib/security/csp-report";
@@ -6,6 +7,10 @@ import { readBodyTextWithin } from "@/lib/http/json-body";
 import { withApiLogging } from "@/lib/observability/with-api-logging";
 
 export const dynamic = "force-dynamic";
+
+interface RateLimiter {
+  limit(options: { key: string }): Promise<{ success: boolean }>;
+}
 
 const NO_CONTENT = () => new Response(null, { status: 204, headers: { "Cache-Control": "no-store" } });
 
@@ -18,6 +23,15 @@ export const POST = withApiLogging("public.csp.report", async (request: NextRequ
   const type = (request.headers.get("content-type") ?? "").toLowerCase().split(";")[0].trim();
   if (!(CSP_REPORT_CONTENT_TYPES as readonly string[]).includes(type)) {
     return new Response(null, { status: 415 });
+  }
+  // Cupo por IP (mismo limitador que los pedidos, con otra clave): por encima
+  // se descartan en silencio para que nadie infle el volumen de registros.
+  const { env } = await getCloudflareContext({ async: true });
+  const limiter = (env as unknown as { ORDER_RATE_LIMITER?: RateLimiter }).ORDER_RATE_LIMITER;
+  if (limiter) {
+    const ip = request.headers.get("cf-connecting-ip") ?? "sin-ip";
+    const { success } = await limiter.limit({ key: `csp:${ip}` });
+    if (!success) return NO_CONTENT();
   }
   const raw = await readBodyTextWithin(request, MAX_CSP_REPORT_BYTES);
   if (raw === null) return new Response(null, { status: 413 });

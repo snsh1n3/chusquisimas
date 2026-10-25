@@ -3,6 +3,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { CatalogProduct, ProductVariant } from "@/types/catalog";
 import { toPublicCatalog, type PublicCatalog, type PublicProduct, type PublicVariant } from "./public-catalog";
 import { publicImagePaths } from "./image-delivery";
+import { PUBLISHED_VARIANT_SQL } from "./publish-rules";
 
 interface Row {
   id: string; slug: string; name: string; description: string;
@@ -49,15 +50,15 @@ export async function getPublishedCatalog(): Promise<{
   // Fail closed: products with no priced active variant are not for sale.
   const [productsResult, variantsResult, categoriesResult, imagesResult] = await Promise.all([
     db.prepare(`SELECT id,slug,name,description,status,featured,created_at,updated_at
-      FROM store_products p WHERE status='active'
+      FROM store_products p WHERE p.status='active'
       AND EXISTS (SELECT 1 FROM store_variants v WHERE v.product_id=p.id
-        AND v.status='active' AND v.price_cop IS NOT NULL)
+        AND ${PUBLISHED_VARIANT_SQL})
       ORDER BY featured DESC,name COLLATE NOCASE`).all<Row>(),
     db.prepare(`SELECT v.id,v.product_id,v.sku,v.status,v.price_cop,v.on_hand,v.reserved,
       v.allow_made_to_order,v.preparation_days,v.label,a.name AS aroma_name FROM store_variants v
       JOIN store_products p ON p.id=v.product_id
       LEFT JOIN store_aromas a ON a.id=v.aroma_id
-      WHERE p.status='active' AND v.status='active' AND v.price_cop IS NOT NULL
+      WHERE ${PUBLISHED_VARIANT_SQL}
       ORDER BY v.price_cop, v.label COLLATE NOCASE`).all<VariantRow>(),
     db.prepare(`SELECT pc.product_id,pc.category_id FROM store_product_categories pc
       JOIN store_products p ON p.id=pc.product_id WHERE p.status='active'`).all<CategoryRow>(),

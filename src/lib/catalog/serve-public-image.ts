@@ -6,6 +6,8 @@ import {
   type ImageSize,
 } from "@/lib/catalog/image-delivery";
 import type { RequestContext } from "@/lib/observability/with-api-logging";
+import { PUBLISHED_VARIANT_SQL } from "./publish-rules";
+import { SITE_URL } from "@/lib/site";
 
 type Bindings = { DB: D1Database; PRODUCT_IMAGES: R2Bucket };
 
@@ -37,7 +39,7 @@ export async function servePublicImage(
       JOIN store_products p ON p.id=i.product_id
       WHERE i.id=? COLLATE NOCASE AND p.status='active'
       AND EXISTS (SELECT 1 FROM store_variants v WHERE v.product_id=p.id
-      AND v.status='active' AND v.price_cop IS NOT NULL)`)
+      AND ${PUBLISHED_VARIANT_SQL})`)
       .bind(id).first<{ storage_key: string }>();
     if (!row) return notFound();
 
@@ -47,7 +49,7 @@ export async function servePublicImage(
     }
 
     const cache = edgeCache();
-    const cacheKey = new Request(edgeCacheKey(new URL(request.url).origin, id, size));
+    const cacheKey = new Request(edgeCacheKey(SITE_URL, id, size));
     if (cache) {
       try {
         const hit = await cache.match(cacheKey);

@@ -108,23 +108,10 @@ export async function verifyAccessToken(
   const parts = token.split(".");
   if (parts.length !== 3) throw new Error("JWT inválido");
   const header = decodeJson<{ alg?: string; kid?: string; typ?: string }>(parts[0]);
-  const claims = decodeJson<AccessClaims>(parts[1]);
   if (header.alg !== "RS256" || !header.kid || header.kid.length > 250) {
     throw new Error("Algoritmo o clave de JWT inválidos");
   }
-  const now = Math.floor(Date.now() / 1000);
-  const expectedIssuer = `https://${domain}`;
-  const audience = claims.aud;
-  const audienceMatches = typeof audience === "string"
-    ? audience === configuration.audience
-    : Array.isArray(audience) && audience.includes(configuration.audience);
-  if (claims.iss !== expectedIssuer || !audienceMatches ||
-      typeof claims.exp !== "number" || !Number.isFinite(claims.exp) ||
-      claims.exp <= now || (typeof claims.nbf === "number" && claims.nbf > now) ||
-      typeof claims.sub !== "string" || !claims.sub ||
-      typeof claims.email !== "string" || !claims.email.includes("@")) {
-    throw new Error("Identidad de Access no válida");
-  }
+  // Primero la firma: ningún claim se interpreta hasta saber que lo emitió Access.
   const key = await getSigningKey(domain, header.kid, fetchJwks);
   const cryptoKey = await crypto.subtle.importKey("jwk", key, {
     name: "RSASSA-PKCS1-v1_5", hash: "SHA-256",
@@ -135,5 +122,22 @@ export async function verifyAccessToken(
     "RSASSA-PKCS1-v1_5", cryptoKey, signature, signedData
   );
   if (!valid) throw new Error("Firma JWT de Access inválida");
+
+  const claims = decodeJson<AccessClaims>(parts[1]);
+  const now = Math.floor(Date.now() / 1000);
+  const expectedIssuer = `https://${domain}`;
+  const audience = claims.aud;
+  const audienceMatches = typeof audience === "string"
+    ? audience === configuration.audience
+    : Array.isArray(audience) && audience.includes(configuration.audience);
+  const nbfValid = claims.nbf === undefined ||
+    (typeof claims.nbf === "number" && Number.isFinite(claims.nbf) && claims.nbf <= now);
+  if (claims.iss !== expectedIssuer || !audienceMatches ||
+      typeof claims.exp !== "number" || !Number.isFinite(claims.exp) ||
+      claims.exp <= now || !nbfValid ||
+      typeof claims.sub !== "string" || !claims.sub ||
+      typeof claims.email !== "string" || !claims.email.includes("@")) {
+    throw new Error("Identidad de Access no válida");
+  }
   return { subject: claims.sub, email: claims.email.toLowerCase() };
 }

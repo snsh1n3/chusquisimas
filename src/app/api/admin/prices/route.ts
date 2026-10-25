@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuthenticatedAdmin } from "@/lib/admin/server-auth";
+import { parseJsonText, readBodyTextWithin } from "@/lib/http/json-body";
 import { updatePrice } from "@/lib/admin/price-service";
 import { adminErrorResponse } from "@/lib/admin/api-errors";
 import { ValidationError } from "@/lib/observability/errors";
@@ -24,11 +25,11 @@ export const POST = withApiLogging("admin.prices.update", async (request: NextRe
   }
   try {
     const { principal, database } = await requireAuthenticatedAdmin("catalog.write");
-    const body = await request.text();
-    if (body.length > MAX_BODY_BYTES) {
+    const body = await readBodyTextWithin(request, MAX_BODY_BYTES);
+    if (body === null) {
       return NextResponse.json({ error: "Solicitud demasiado grande" }, { status: 413 });
     }
-    const data: unknown = JSON.parse(body);
+    const data: unknown = parseJsonText(body);
     if (typeof data !== "object" || data === null || Array.isArray(data)) {
       throw new ValidationError("body_not_object", "Solicitud inválida");
     }

@@ -50,3 +50,22 @@ test("rejects tampered claims with invalid RSA signature", async () => {
   await assert.rejects(verifyAccessToken(modified, cfg, fetchJwks),
     /Firma JWT de Access inválida/);
 });
+
+// --- Endurecimiento tras la auditoría de seguridad (oct 2026) ---
+
+test("rechaza un nbf no numérico o en el futuro", async () => {
+  const now = Math.floor(Date.now() / 1000);
+  await assert.rejects(verifyAccessToken(signedToken(claims({ nbf: "0" })), cfg, fetchJwks),
+    /Identidad de Access no válida/);
+  await assert.rejects(verifyAccessToken(signedToken(claims({ nbf: now + 600 })), cfg, fetchJwks),
+    /Identidad de Access no válida/);
+  const identity = await verifyAccessToken(signedToken(claims({ nbf: now - 5 })), cfg, fetchJwks);
+  assert.equal(identity.email, "owner@example.com");
+});
+
+test("verifica la firma antes de interpretar los claims", async () => {
+  // Claims ilegibles con firma falsa: el error debe ser de firma, no de claims.
+  const header = toPart({ alg: "RS256", kid: "test-key", typ: "JWT" });
+  const forged = [header, Buffer.from("no-es-json").toString("base64url"), "AAAA"].join(".");
+  await assert.rejects(verifyAccessToken(forged, cfg, fetchJwks), /Firma JWT de Access inválida/);
+});

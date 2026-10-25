@@ -9,6 +9,7 @@ import type { PublicAvailability } from "../catalog/public-catalog.ts";
 import type { OrderLineInput } from "./order-inputs.ts";
 import type { OrdersDatabase } from "./order-db.ts";
 import { listShippingZones, type ShippingZoneView } from "./shipping-service.ts";
+import { PUBLISHED_VARIANT_SQL } from "../catalog/publish-rules.ts";
 
 export interface QuoteLine {
   variantId: string;
@@ -47,7 +48,7 @@ export async function quoteCart(db: OrdersDatabase, items: OrderLineInput[]): Pr
     JOIN store_products p ON p.id = v.product_id
     LEFT JOIN store_aromas a ON a.id = v.aroma_id
     WHERE v.id IN (${placeholders})
-      AND v.status = 'active' AND p.status = 'active' AND v.price_cop IS NOT NULL
+      AND ${PUBLISHED_VARIANT_SQL}
   `).bind(...items.map((item) => item.variantId)).all<Row>();
   const byId = new Map(results.map((row) => [row.id, row]));
 

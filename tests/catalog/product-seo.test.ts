@@ -37,3 +37,13 @@ describe("product SEO", () => {
     assert.equal(JSON.parse(json).name, "</script><script>alert(1)</script>");
   });
 });
+
+// --- Endurecimiento tras la auditoría de seguridad (oct 2026) ---
+
+it("serializeJsonForScript no deja caracteres que cierren el script", async () => {
+  const { serializeJsonForScript } = await import("../../src/lib/catalog/product-seo.ts");
+  const hostile = { name: "</script><script>alert(1)</script>", note: "<!-- & >   " };
+  const out = serializeJsonForScript(hostile);
+  for (const ch of ["<", ">", "&", " ", " "]) assert.equal(out.includes(ch), false, ch);
+  assert.deepEqual(JSON.parse(out), hostile);
+});

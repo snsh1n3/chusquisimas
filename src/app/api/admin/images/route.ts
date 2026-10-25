@@ -42,7 +42,13 @@ export const POST = withApiLogging("admin.images.upload", async (request: NextRe
     ctx.logger.warn("api.origin_rejected");
     return NextResponse.json({ error: "Origen no autorizado" }, { status: 403 });
   }
-  const size = Number(request.headers.get("content-length") ?? "0");
+  // El navegador siempre declara el tamaño de un FormData; sin él no se puede
+  // acotar la lectura antes de formData(), así que se exige.
+  const declared = request.headers.get("content-length");
+  if (declared === null || !/^\d+$/.test(declared.trim())) {
+    return NextResponse.json({ error: "Falta el tamaño de la solicitud" }, { status: 411 });
+  }
+  const size = Number(declared);
   if (size > MAX_IMAGE_BYTES + MULTIPART_OVERHEAD_BYTES) {
     return NextResponse.json({ error: "Archivo demasiado grande" }, { status: 413 });
   }
@@ -102,14 +108,20 @@ export const POST = withApiLogging("admin.images.upload", async (request: NextRe
     const result = await db.batch([
       db.prepare(`INSERT INTO store_product_images(id,product_id,storage_key,alt_text,sort_order)
         SELECT ?,id,?,?,COALESCE((SELECT MAX(sort_order)+1 FROM store_product_images
-          WHERE product_id=?),0) FROM store_products WHERE id=?`)
-        .bind(imageId, objectKey, alt.trim(), productId, productId),
+          WHERE product_id=?),0) FROM store_products WHERE id=?
+          AND (SELECT COUNT(*) FROM store_product_images WHERE product_id=?) < ?`)
+        .bind(imageId, objectKey, alt.trim(), productId, productId, productId, MAX_IMAGES_PER_PRODUCT),
       db.prepare(`INSERT INTO admin_audit_log
         (id,actor_user_id,action,resource_type,resource_id,details_json)
         SELECT ?,?,'product_image_add','product',product_id,json_object('image_id',id)
         FROM store_product_images WHERE id=?`)
         .bind(auditId, principal.id, imageId),
     ]);
+    // Otra carga simultánea llenó el cupo: el INSERT condicionado no escribió.
+    if (result[0]?.success && result[0].meta.changes === 0) {
+      throw new ValidationError("image_limit_reached",
+        `Cada producto admite hasta ${MAX_IMAGES_PER_PRODUCT} fotografías.`);
+    }
     if (result.some(x => !x.success || x.meta.changes !== 1)) {
       throw new AppError("storage", "image_db_attach_failed", "No se pudo registrar la imagen en D1");
     }

@@ -17,6 +17,7 @@ import {
   type OrderInput, type ShippingZone,
 } from "./order-inputs.ts";
 import { isConstraintError, isoNow, type OrdersDatabase, type OrdersStatement } from "./order-db.ts";
+import { PUBLISHED_VARIANT_SQL } from "../catalog/publish-rules.ts";
 
 export const ORDER_STATUSES = ["received", "preparing", "shipped", "delivered", "cancelled"] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
@@ -97,7 +98,7 @@ async function loadVariants(db: OrdersDatabase, ids: string[]): Promise<Map<stri
     JOIN store_products p ON p.id = v.product_id
     LEFT JOIN store_aromas a ON a.id = v.aroma_id
     WHERE v.id IN (${placeholders})
-      AND v.status = 'active' AND p.status = 'active' AND v.price_cop IS NOT NULL
+      AND ${PUBLISHED_VARIANT_SQL}
   `).bind(...ids).all<VariantForOrder>();
   return new Map(results.map((row) => [row.id, row]));
 }
