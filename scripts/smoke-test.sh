@@ -54,6 +54,10 @@ check /pqr          200
 # Sin JWT de Access el panel debe negar (404/403/401), nunca fallar con 500.
 check /admin        401,403,404 admin.chusquisimas.com
 check /admin/pedidos 401,403,404 admin.chusquisimas.com
+# El subdominio del panel no sirve la tienda: raíz → /admin, resto → chusquisimas.com.
+check /             307 admin.chusquisimas.com
+check /tienda       307 admin.chusquisimas.com
+check /robots.txt   200 admin.chusquisimas.com
 
 post() {
   local path="$1" expected="$2" body="$3" origin="${4:-https://chusquisimas.com}"

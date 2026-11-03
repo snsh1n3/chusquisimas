@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import path from "node:path";
 import { securityHeaderRules } from "./src/lib/security/headers";
+import { adminHostRedirects } from "./src/lib/routing/admin-host";
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.0.2"],
@@ -19,6 +20,9 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return securityHeaderRules();
+  },
+  async redirects() {
+    return adminHostRedirects();
   },
 };
 
