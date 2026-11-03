@@ -43,6 +43,7 @@
   "overrides": {
     "@node-minify/core": {
       "glob": "10.5.0"
-    }
+    },
+    "undici": "^7.30.1"
   }
 }
